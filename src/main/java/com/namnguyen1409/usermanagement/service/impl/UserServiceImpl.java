@@ -79,11 +79,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(String userId) {
         var user = securityUtils.getById(userId);
-
         securityUtils.checkUserDeleted(user);
-
         securityUtils.checkAdminPrivileges(user);
-
         user.markAsDeleted(securityUtils.getCurrentUserId());
         saveUser(user);
     }
