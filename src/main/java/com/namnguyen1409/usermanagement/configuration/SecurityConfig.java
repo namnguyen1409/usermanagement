@@ -35,8 +35,6 @@ public class SecurityConfig {
             "/auth/introspect"
     };
 
-    private CustomJwtDecoder customJwtDecoder;
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
