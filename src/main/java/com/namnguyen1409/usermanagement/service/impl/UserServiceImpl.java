@@ -127,6 +127,7 @@ public class UserServiceImpl implements UserService {
         saveUser(user);
     }
 
+    @PreAuthorize("hasAnyAuthority('VIEW_USER')")
     @Override
     public Page<LoginLogResponse> getLoginHistory(String id, FilterLoginLog filterLoginLog) {
         return securityUtils.getLoginLogResponses(filterLoginLog, securityUtils.getById(id));
