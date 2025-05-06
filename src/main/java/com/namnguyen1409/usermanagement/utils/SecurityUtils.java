@@ -141,6 +141,17 @@ public class SecurityUtils {
         return lastAttemptTime.isAfter(LocalDateTime.now().minusMinutes(LOCKED_TIME));
     }
 
+    @NotNull
+    public Page<LoginLogResponse> getLoginLogResponses(FilterLoginLog filterLoginLog, User user) {
+        filterLoginLog.setUserId(user.getId());
+        Sort sortDirection = "asc".equalsIgnoreCase(filterLoginLog.getSortDirection())
+                ? Sort.by(filterLoginLog.getSortBy()).ascending()
+                : Sort.by(filterLoginLog.getSortBy()).descending();
+
+        Pageable pageable = PageRequest.of(filterLoginLog.getPage(), filterLoginLog.getSize(), sortDirection);
+        var spec = LoginLogSpecification.buildSpecification(filterLoginLog);
+        return loginLogRepository.findAll(spec, pageable).map(loginLogMapper::toLoginLogResponse);
+    }
 
     /**
      * Kiểm tra xem người dùng hiện tại có quyền Super Admin hay không.

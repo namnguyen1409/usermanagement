@@ -8,7 +8,6 @@ import com.namnguyen1409.usermanagement.dto.response.LoginLogResponse;
 import com.namnguyen1409.usermanagement.dto.response.UserResponse;
 import com.namnguyen1409.usermanagement.dto.response.UserResponseDetail;
 import org.springframework.data.domain.Page;
-import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.Set;
 
