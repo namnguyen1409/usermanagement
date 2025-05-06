@@ -6,6 +6,7 @@ import com.namnguyen1409.usermanagement.dto.response.IntrospectResponse;
 import com.namnguyen1409.usermanagement.dto.response.LoginResponse;
 import com.namnguyen1409.usermanagement.dto.response.RefreshTokenResponse;
 import com.namnguyen1409.usermanagement.exception.AppException;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Giao diện {@code AuthenticationService} cung cấp các phương thức để quản lý
@@ -56,7 +57,7 @@ public interface AuthenticationService {
      *             ngược lại là {@code false}.</li>
      *         </ul>
      */
-    LoginResponse login(LoginRequest request);
+    LoginResponse login(LoginRequest request, HttpServletRequest httpServletRequest);
 
     /**
      * Phương thức này thực hiện chức năng đăng xuất cho người dùng.

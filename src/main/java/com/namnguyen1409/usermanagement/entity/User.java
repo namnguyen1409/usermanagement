@@ -9,6 +9,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Getter
@@ -47,6 +48,12 @@ public class User extends BaseEntity {
 
     @Column(nullable = false)
     String address;
+
+    @Column
+    Boolean isLocked = false;
+
+    @Column
+    LocalDateTime LockedAt;
 
     @ManyToMany
     Set<Role> roles;

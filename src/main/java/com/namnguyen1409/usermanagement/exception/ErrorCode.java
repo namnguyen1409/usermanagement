@@ -25,6 +25,7 @@ public enum ErrorCode {
     CANNOT_DELETE_OTHER_ADMIN(400, "Cannot delete other admin", HttpStatus.BAD_REQUEST),
     CANNOT_UPDATE_SUPER_ADMIN(400, "Cannot update super admin", HttpStatus.BAD_REQUEST),
     CANNOT_UPDATE_OTHER_ADMIN(400, "Cannot update other admin", HttpStatus.BAD_REQUEST),
+    USER_LOCKED(400, "User is locked", HttpStatus.BAD_REQUEST),
     ;
     int code;
     String message;

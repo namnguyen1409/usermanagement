@@ -1,15 +1,22 @@
 package com.namnguyen1409.usermanagement.utils;
 
 import com.namnguyen1409.usermanagement.dto.request.UpdateUserRequest;
+import com.namnguyen1409.usermanagement.entity.LoginLog;
 import com.namnguyen1409.usermanagement.entity.User;
 import com.namnguyen1409.usermanagement.exception.AppException;
 import com.namnguyen1409.usermanagement.exception.ErrorCode;
+import com.namnguyen1409.usermanagement.repository.LoginLogRepository;
 import com.namnguyen1409.usermanagement.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -17,6 +24,12 @@ import org.springframework.stereotype.Component;
 public class SecurityUtils {
 
     UserRepository userRepository;
+    LoginLogRepository loginLogRepository;
+
+
+    @NonFinal
+    @Value("${user.locked-time}")
+    long LOCKED_TIME;
 
     /**
      * Lấy id người dùng hiện tại từ ngữ cảnh bảo mật.
@@ -100,6 +113,34 @@ public class SecurityUtils {
             throw new AppException(ErrorCode.USER_DELETED);
         }
     }
+
+    public void checkUserLocked(User user) {
+        if (Boolean.TRUE.equals(user.getIsLocked())) {
+            if (user.getLockedAt() != null &&
+                    user.getLockedAt().isBefore(LocalDateTime.now().minusMinutes(LOCKED_TIME))) {
+                user.setIsLocked(false);
+                user.setLockedAt(null);
+                userRepository.save(user);
+            } else {
+                throw new AppException(ErrorCode.USER_LOCKED);
+            }
+        }
+    }
+
+
+    public boolean is5ConsecutiveFailedLoginAttempts(User user) {
+        List<LoginLog> last5LoginLogs = loginLogRepository.findTop5ByUserOrderByCreatedAtDesc(user);
+        if (last5LoginLogs.size() < 5) {
+            return false;
+        }
+        boolean allFailed = last5LoginLogs.stream().noneMatch(LoginLog::getSuccess);
+        if (!allFailed) {
+            return false;
+        }
+        LocalDateTime lastAttemptTime = last5LoginLogs.getFirst().getCreatedAt();
+        return lastAttemptTime.isAfter(LocalDateTime.now().minusMinutes(LOCKED_TIME));
+    }
+
 
     /**
      * Kiểm tra xem người dùng hiện tại có quyền Super Admin hay không.

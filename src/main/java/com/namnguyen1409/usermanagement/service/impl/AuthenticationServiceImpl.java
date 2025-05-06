@@ -5,12 +5,14 @@ import com.namnguyen1409.usermanagement.dto.response.CreateUserResponse;
 import com.namnguyen1409.usermanagement.dto.response.IntrospectResponse;
 import com.namnguyen1409.usermanagement.dto.response.LoginResponse;
 import com.namnguyen1409.usermanagement.dto.response.RefreshTokenResponse;
+import com.namnguyen1409.usermanagement.entity.LoginLog;
 import com.namnguyen1409.usermanagement.entity.TokenBlacklist;
 import com.namnguyen1409.usermanagement.entity.User;
 import com.namnguyen1409.usermanagement.enums.UserRole;
 import com.namnguyen1409.usermanagement.exception.AppException;
 import com.namnguyen1409.usermanagement.exception.ErrorCode;
 import com.namnguyen1409.usermanagement.mapper.UserMapper;
+import com.namnguyen1409.usermanagement.repository.LoginLogRepository;
 import com.namnguyen1409.usermanagement.repository.RoleRepository;
 import com.namnguyen1409.usermanagement.repository.TokenBlacklistRepository;
 import com.namnguyen1409.usermanagement.repository.UserRepository;
@@ -21,6 +23,7 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -30,15 +33,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ua_parser.Client;
+import ua_parser.Parser;
 
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.Set;
-import java.util.StringJoiner;
-import java.util.UUID;
+import java.util.*;
 
 
 @Service
@@ -53,6 +56,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     UserMapper userMapper;
     RoleRepository roleRepository;
     SecurityUtils securityUtils;
+    LoginLogRepository loginLogRepository;
 
     @NonFinal
     @Value("${jwt.secret-key}")
@@ -65,6 +69,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @NonFinal
     @Value("${jwt.refresh-time}")
     long REFRESH_TIME;
+
+
 
     @Override
     public IntrospectResponse introspect(IntrospectRequest request) {
@@ -97,16 +103,30 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return CreateUserResponse.builder().success(true).build();
     }
 
+    @Transactional(noRollbackFor = {AppException.class})
     @Override
-    public LoginResponse login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request, HttpServletRequest httpServletRequest) {
         var user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        securityUtils.checkUserDeleted(user);
+        securityUtils.checkUserLocked(user);
+
+        LoginLog loginLog = new LoginLog();
+        buildLoginLog(loginLog, user, httpServletRequest);
+        log.info("Login log: {}", loginLog);
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            loginLog.setSuccess(false);
+            loginLogRepository.save(loginLog);
+            if (securityUtils.is5ConsecutiveFailedLoginAttempts(user)) {
+                user.setIsLocked(true);
+                user.setLockedAt(LocalDateTime.now());
+                userRepository.save(user);
+                throw new AppException(ErrorCode.USER_LOCKED);
+            }
             throw new AppException(ErrorCode.INVALID_CREDENTIALS);
         }
-
-        securityUtils.checkUserDeleted(user);
-
+        loginLog.setSuccess(true);
+        loginLogRepository.save(loginLog);
         String token = generateToken(user);
         return LoginResponse.builder().token(token).isAuthenticated(true).build();
     }
@@ -118,7 +138,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             SignedJWT signedJWT = verifyToken(token, false);
             tokenBlacklistRepository.save(TokenBlacklist.builder().
                     tokenId(signedJWT.getJWTClaimsSet().getJWTID())
-                    .createdAt(LocalDateTime.now())
                     .build());
         } catch (JOSEException | ParseException e) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
@@ -222,6 +241,31 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             });
         }
         return stringJoiner.toString();
+    }
+
+
+    private void buildLoginLog(LoginLog loginLog, User user, HttpServletRequest request) {
+        loginLog.setUser(user);
+        String ipAddress = request.getHeader("X-FORWARDED-FOR");
+        if (ipAddress == null || ipAddress.isEmpty()) {
+            ipAddress = request.getRemoteAddr();
+        }
+        loginLog.setIpAddress(ipAddress);
+        Parser parser = new Parser();
+        Client client = parser.parse(request.getHeader("User-Agent"));
+        loginLog.setUserAgent(request.getHeader("User-Agent"));
+        loginLog.setOs(getString(client.os.family));
+        loginLog.setOsVersion(getString(client.os.major));
+        loginLog.setBrowser(getString(client.userAgent.family));
+        loginLog.setBrowserVersion(getString(client.userAgent.major));
+        loginLog.setDevice(getString(client.device.family));
+    }
+
+    private String getString(String data) {
+        if (data == null || data.isEmpty()) {
+            return "unknown";
+        }
+        return data;
     }
 
 }

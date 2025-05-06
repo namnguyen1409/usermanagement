@@ -1,8 +1,10 @@
 package com.namnguyen1409.usermanagement.service;
 
 import com.namnguyen1409.usermanagement.dto.request.CreateUserRequest;
+import com.namnguyen1409.usermanagement.dto.request.FilterLoginLog;
 import com.namnguyen1409.usermanagement.dto.request.FilterUserRequest;
 import com.namnguyen1409.usermanagement.dto.request.UpdateUserRequest;
+import com.namnguyen1409.usermanagement.dto.response.LoginLogResponse;
 import com.namnguyen1409.usermanagement.dto.response.UserResponse;
 import com.namnguyen1409.usermanagement.dto.response.UserResponseDetail;
 import org.springframework.data.domain.Page;
@@ -25,4 +27,6 @@ public interface UserService {
     Page<UserResponse> filterUsers(FilterUserRequest filterUserRequest);
 
     void restoreUser(String id);
+
+    Page<LoginLogResponse> getLoginHistory(String id, FilterLoginLog filterLoginLog);
 }
