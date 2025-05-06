@@ -24,7 +24,6 @@ public class AuthenticationController {
 
     AuthenticationService authenticationService;
 
-
     @PostMapping("/login")
     ApiResponse<LoginResponse> login(@RequestBody LoginRequest request,
                                      HttpServletRequest httpServletRequest) {

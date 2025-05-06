@@ -261,24 +261,28 @@ public Page<UserResponse> filterUsers(FilterUserRequest filterUserRequest) {
 
 #### 5.5. **Thiết kế các API**
 
-| **Phương thức** | **Endpoint**        | **Vai trò/quyền** | **Mô tả**                                                    |
-|-----------------|---------------------|-------------------|--------------------------------------------------------------|
-| `POST`          | /auth/register      | `PUBLIC`          | Đăng ký tài khoản mới                                        |
-| `POST`          | /auth/login         | `PUBLIC`          | Đăng nhập, nhận jwt                                          |
-| `POST`          | /auth/refresh-token | `PUBLIC`          | Nhận token cũ và trả về token mới                            |
-| `POST`          | /auth/logout        | `PUBLIC`          | Đăng xuất, vô hiệu hóa token                                 |
-| `GET`           | /profile            | `ALL ROLE`        | Lấy thông tin tài khoản hiện tại                             |
-| `PUT`           | /profile            | `ALL ROLE`        | Cập nhật thông tin tài khoản                                 |
-| `PUT`           | /profile/password   | `ALL ROLE`        | Đổi mật khẩu                                                 |
-| `DELETE`        | /profile            | `ALL ROLE`        | Xóa tài khoản cá nhân                                        |
-| `GET`           | /roles              | `ADMIN`           | Lấy danh sách quyền trong hệ thống                           |
-| `GET`           | /users              | `VIEW_USER`       | Lấy danh sách người dùng trong hệ thống                      |
-| `POST`          | /users              | `VIEW_USER`       | Lấy danh sách người dùng trong hệ thống + lọc theo điều kiện |
-| `GET`           | /users/{id}         | `VIEW_USER`       | Xem thông tin người dùng theo id                             |
-| `POST`          | /users/create       | `ADD_USER`        | Tạo một người dùng mới                                       |
-| `PUT`           | /users/{id}         | `EDIT_USER`       | Sửa thông tin người dùng theo id                             |
-| `DELETE`        | /users/{id}         | `DELETE_USER`     | Xóa một người dùng theo id                                   |
-| `POST`          | /users/restore/{id} | `SUPER_ADMIN`     | Khôi phục người dùng bị xóa                                  |
+| **Phương thức** | **Endpoint**         | **Vai trò/quyền** | **Mô tả**                                                        |
+|-----------------|----------------------|-------------------|------------------------------------------------------------------|
+| `POST`          | /auth/register       | `PUBLIC`          | Đăng ký tài khoản mới                                            |
+| `POST`          | /auth/login          | `PUBLIC`          | Đăng nhập, nhận jwt                                              |
+| `POST`          | /auth/refresh-token  | `PUBLIC`          | Nhận token cũ và trả về token mới                                |
+| `POST`          | /auth/logout         | `PUBLIC`          | Đăng xuất, vô hiệu hóa token                                     |
+| `GET`           | /profile             | `ALL ROLE`        | Lấy thông tin tài khoản hiện tại                                 |
+| `PUT`           | /profile             | `ALL ROLE`        | Cập nhật thông tin tài khoản                                     |
+| `PUT`           | /profile/password    | `ALL ROLE`        | Đổi mật khẩu                                                     |
+| `DELETE`        | /profile             | `ALL ROLE`        | Xóa tài khoản cá nhân                                            |
+| `GET`           | /login-history       | `ALL ROLE`        | Lấy danh sách lịch sử đăng nhập của cá nhân                      |
+| `POST`          | /login-history       | `ALL ROLE`        | Lấy danh sách lịch sử đăng nhập của cá nhân + lọc theo điều kiện |
+| `GET`           | /roles               | `ADMIN`           | Lấy danh sách quyền trong hệ thống                               |
+| `GET`           | /users               | `VIEW_USER`       | Lấy danh sách người dùng trong hệ thống                          |
+| `POST`          | /users               | `VIEW_USER`       | Lấy danh sách người dùng trong hệ thống + lọc theo điều kiện     |
+| `GET`           | /users/login-history | `VIEW_USER`       | Lấy danh sách lịch sử đăng nhập người dùng                       |
+| `POST`          | /users/login-history | `VIEW_USER`       | Lấy danh sách lịch sử đăng nhập người dùng + lọc theo điều kiện  |
+| `GET`           | /users/{id}          | `VIEW_USER`       | Xem thông tin người dùng theo id                                 |
+| `POST`          | /users/create        | `ADD_USER`        | Tạo một người dùng mới                                           |
+| `PUT`           | /users/{id}          | `EDIT_USER`       | Sửa thông tin người dùng theo id                                 |
+| `DELETE`        | /users/{id}          | `DELETE_USER`     | Xóa một người dùng theo id                                       |
+| `POST`          | /users/restore/{id}  | `SUPER_ADMIN`     | Khôi phục người dùng bị xóa                                      |
 
 
 #### 5.7. **Xử lý lỗi**

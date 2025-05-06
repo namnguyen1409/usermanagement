@@ -1,17 +1,26 @@
 package com.namnguyen1409.usermanagement.utils;
 
+import com.namnguyen1409.usermanagement.dto.request.FilterLoginLog;
 import com.namnguyen1409.usermanagement.dto.request.UpdateUserRequest;
+import com.namnguyen1409.usermanagement.dto.response.LoginLogResponse;
 import com.namnguyen1409.usermanagement.entity.LoginLog;
 import com.namnguyen1409.usermanagement.entity.User;
 import com.namnguyen1409.usermanagement.exception.AppException;
 import com.namnguyen1409.usermanagement.exception.ErrorCode;
+import com.namnguyen1409.usermanagement.mapper.LoginLogMapper;
 import com.namnguyen1409.usermanagement.repository.LoginLogRepository;
 import com.namnguyen1409.usermanagement.repository.UserRepository;
+import com.namnguyen1409.usermanagement.specification.LoginLogSpecification;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +34,7 @@ public class SecurityUtils {
 
     UserRepository userRepository;
     LoginLogRepository loginLogRepository;
+    LoginLogMapper loginLogMapper;
 
 
     @NonFinal

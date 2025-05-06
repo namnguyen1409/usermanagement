@@ -13,14 +13,11 @@ import com.namnguyen1409.usermanagement.entity.User;
 import com.namnguyen1409.usermanagement.enums.UserRole;
 import com.namnguyen1409.usermanagement.exception.AppException;
 import com.namnguyen1409.usermanagement.exception.ErrorCode;
-import com.namnguyen1409.usermanagement.mapper.LoginLogMapper;
 import com.namnguyen1409.usermanagement.mapper.UserMapper;
-import com.namnguyen1409.usermanagement.repository.LoginLogRepository;
 import com.namnguyen1409.usermanagement.repository.PermissionRepository;
 import com.namnguyen1409.usermanagement.repository.RoleRepository;
 import com.namnguyen1409.usermanagement.repository.UserRepository;
 import com.namnguyen1409.usermanagement.service.UserService;
-import com.namnguyen1409.usermanagement.specification.LoginLogSpecification;
 import com.namnguyen1409.usermanagement.specification.UserSpecification;
 import com.namnguyen1409.usermanagement.utils.SecurityUtils;
 import lombok.AccessLevel;
@@ -51,8 +48,6 @@ public class UserServiceImpl implements UserService {
     RoleRepository roleRepository;
     PermissionRepository permissionRepository;
     SecurityUtils securityUtils;
-    LoginLogRepository loginLogRepository;
-    LoginLogMapper loginLogMapper;
 
 
     @PreAuthorize("hasAnyAuthority('ADD_USER')")
@@ -134,15 +129,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<LoginLogResponse> getLoginHistory(String id, FilterLoginLog filterLoginLog) {
-        var user = securityUtils.getById(id);
-        filterLoginLog.setUserId(user.getId());
-        Sort sortDirection = "asc".equalsIgnoreCase(filterLoginLog.getSortDirection())
-                ? Sort.by(filterLoginLog.getSortBy()).ascending()
-                : Sort.by(filterLoginLog.getSortBy()).descending();
-
-        Pageable pageable = PageRequest.of(filterLoginLog.getPage(), filterLoginLog.getSize(), sortDirection);
-        var spec = LoginLogSpecification.buildSpecification(filterLoginLog);
-        return loginLogRepository.findAll(spec, pageable).map(loginLogMapper::toLoginLogResponse);
+        return securityUtils.getLoginLogResponses(filterLoginLog, securityUtils.getById(id));
     }
 
     private void handleRolesAndPermissions(Set<String> roleList, Set<String> revokedPermissionList, User user) {
