@@ -23,5 +23,6 @@ public class Role {
     String description;
 
     @ManyToMany
+    @Builder.Default
     Set<Permission> permissions = new HashSet<>();
 }

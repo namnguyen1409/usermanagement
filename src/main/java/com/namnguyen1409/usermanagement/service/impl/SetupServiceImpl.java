@@ -8,7 +8,6 @@ import com.namnguyen1409.usermanagement.enums.UserRole;
 import com.namnguyen1409.usermanagement.repository.PermissionRepository;
 import com.namnguyen1409.usermanagement.repository.RoleRepository;
 import com.namnguyen1409.usermanagement.repository.UserRepository;
-import com.namnguyen1409.usermanagement.service.RoleService;
 import com.namnguyen1409.usermanagement.service.SetupService;
 import com.namnguyen1409.usermanagement.utils.RandomUtils;
 import lombok.AccessLevel;
@@ -36,7 +35,6 @@ public class SetupServiceImpl implements SetupService {
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
     RandomUtils randomUtils;
-    private final RoleService roleService;
 
 
     @Transactional

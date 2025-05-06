@@ -50,6 +50,7 @@ public class User extends BaseEntity {
     String address;
 
     @Column
+    @Builder.Default
     Boolean isLocked = false;
 
     @Column

@@ -13,7 +13,6 @@ import com.namnguyen1409.usermanagement.repository.LoginLogRepository;
 import com.namnguyen1409.usermanagement.repository.UserRepository;
 import com.namnguyen1409.usermanagement.service.ProfileService;
 import com.namnguyen1409.usermanagement.specification.LoginLogSpecification;
-import com.namnguyen1409.usermanagement.specification.UserSpecification;
 import com.namnguyen1409.usermanagement.utils.SecurityUtils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
