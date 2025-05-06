@@ -11,5 +11,5 @@ import java.util.List;
 @Repository
 public interface LoginLogRepository extends JpaRepository<LoginLog, String>, JpaSpecificationExecutor<LoginLog> {
     List<LoginLog> findTop5ByUserOrderByCreatedAtDesc(User user);
-    
+
 }
