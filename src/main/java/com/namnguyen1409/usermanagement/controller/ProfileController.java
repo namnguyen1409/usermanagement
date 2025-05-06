@@ -41,7 +41,7 @@ public class ProfileController {
     }
 
     @PutMapping("/password")
-    public ApiResponse<Void> updatePassword(@RequestBody UpdateUserPasswordRequest request) {
+    public ApiResponse<Void> updatePassword(@RequestBody @Validated UpdateUserPasswordRequest request) {
         profileService.updatePassword(request);
         return ApiResponse.<Void>builder()
                 .build();
