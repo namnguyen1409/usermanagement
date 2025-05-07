@@ -1,7 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Table, message } from 'antd';
-import type { TableProps } from 'antd';
-import axios from 'axios';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Button, DatePicker, Input, Select, Space, Table, message } from 'antd';
+import type { TableColumnType, TableProps } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
+import axiosInstance from '../utils/axiosInstance';
+import type { ColumnType } from 'antd/es/table';
+import dayjs from 'dayjs';
 
 interface PageInfo {
   size: number;
@@ -18,6 +21,18 @@ interface ApiResponse<T> {
   };
 }
 
+export interface FilterConfig {
+  type: 'text' | 'select' | 'date';
+  placeholder?: string;
+  options?: { label: string; value: any }[];
+  by: string[];
+  format?: string;
+}
+
+export interface ReusableColumnType<T> extends TableColumnType<T> {
+  filter?: FilterConfig;
+}
+
 interface ReusableTableProps<T> extends TableProps<T> {
   apiUrl: string;
   rowKey?: string | ((record: T) => string);
@@ -25,7 +40,9 @@ interface ReusableTableProps<T> extends TableProps<T> {
   extraParams?: Record<string, any>;
   defaultSortBy?: string;
   defaultSortDirection?: 'asc' | 'desc';
-  visibleColumns?: string[]; // Thêm prop visibleColumns để lọc cột hiển thị
+  visibleColumns?: string[];
+  searchBy?: string;
+  
 }
 
 const ReusableTable = <T extends object>({
@@ -33,10 +50,9 @@ const ReusableTable = <T extends object>({
   apiUrl,
   rowKey = 'id',
   defaultPageSize = 10,
-  extraParams = {},
   defaultSortBy = 'createdAt',
   defaultSortDirection = 'asc',
-  visibleColumns = [], // Mặc định không có cột nào bị ẩn
+  visibleColumns = [],
   ...rest
 }: ReusableTableProps<T>) => {
   const [data, setData] = useState<T[]>([]);
@@ -50,63 +66,185 @@ const ReusableTable = <T extends object>({
     sortBy: defaultSortBy,
     sortDirection: defaultSortDirection,
   });
+  const [filterState, setFilterState] = useState<Record<string, any>>({});
 
-  const fetchData = async (params: {
+  const [tempFilterState, setTempFilterState] = useState<Record<string, any>>({});
+
+  const fetchData = useCallback(async (params: {
     current?: number;
     pageSize?: number;
     sortBy?: string;
     sortDirection?: string;
+    filter?: Record<string, any>;
   } = {}) => {
     setLoading(true);
     try {
-      const res = await axios.get<ApiResponse<T>>(apiUrl, {
-        params: {
-          page: (params.current ?? 1) - 1,
-          size: params.pageSize ?? defaultPageSize,
-          sortBy: params.sortBy ?? sortState.sortBy,
-          sortDirection: params.sortDirection ?? sortState.sortDirection,
-          ...extraParams,
-        },
+      const res = await axiosInstance.post<ApiResponse<T>>(apiUrl, {
+        page: (params.current ?? 1) - 1,
+        size: params.pageSize ?? defaultPageSize,
+        sortBy: params.sortBy ?? defaultSortBy,
+        sortDirection: params.sortDirection ?? defaultSortDirection,
+        ...params.filter,
       });
 
       const pageInfo = res.data.data.page;
       setData(res.data.data.content);
-      setPagination({
+      setPagination(prev => ({
+        ...prev,
         current: pageInfo.number + 1,
-        pageSize: pageInfo.size,
         total: pageInfo.totalElements,
-      });
+      }));
     } catch (err) {
       console.error(err);
       message.error('Không thể tải dữ liệu');
     } finally {
       setLoading(false);
     }
+  }, [apiUrl, defaultPageSize, defaultSortBy, defaultSortDirection]);
+
+
+
+
+  const getColumnSearchProps = <T extends object>(
+    column: ReusableColumnType<T>,
+    onFilterChange: () => void
+  ): Partial<ColumnType<T>> => {
+    const { filter, dataIndex } = column;
+
+    if (!filter || !dataIndex) return {};
+
+    return {
+      filterDropdown: ({ confirm }) => {
+
+        const handleChange = (key: string, value: any) => {
+          setTempFilterState(
+            { ...tempFilterState, [key]: value }
+          )
+        };
+
+        const handleSearch = () => {
+          onFilterChange()
+          confirm()
+        };
+
+        const handleReset = (keys: string[]) => {
+          const newFilterState = { ...tempFilterState };
+
+          keys.forEach(key => {
+            newFilterState[key] = undefined;
+          });
+          setTempFilterState(newFilterState);
+          setFilterState(
+            {
+              ...filterState,
+              ...newFilterState
+            }
+          )
+          confirm()
+        };
+
+        return (
+          <div style={{ padding: 8 }}>
+            {filter.type === 'text' && (
+              filter.by.map((field) =>
+                <Input
+                  key={field}
+                  placeholder={filter.placeholder}
+                  value={tempFilterState[field]}
+                  onChange={e => handleChange(field, e.target.value)}
+                  onPressEnter={handleSearch}
+                  style={{ width: 188, marginBottom: 8, display: 'block' }}
+                />
+              ))}
+
+            {filter.type === 'select' && (
+              filter.by.map((field) =>
+                <Select
+                  key={field}
+                  style={{ width: 188, marginBottom: 8, display: 'block' }}
+                  placeholder={filter.placeholder}
+                  options={filter.options}
+                  value={tempFilterState[field]}
+                  onChange={value => handleChange(field, value)}
+                />
+              ))}
+
+            {filter.type === 'date' &&
+              filter.by.map((field) => (
+                <DatePicker
+                  key={field}
+                  format={filter.format || 'YYYY-MM-DD'}
+                  style={{ width: 188, marginBottom: 8, display: 'block' }}
+                  value={tempFilterState[field] ? dayjs(tempFilterState[field]) : tempFilterState[field] ? dayjs(tempFilterState[field]) : null}
+                  onChange={date =>
+                    handleChange(field, date?.format(filter.format || 'YYYY-MM-DD'))
+                  }
+                />
+              ))}
+
+            <Space>
+              <Button
+                type="primary"
+                onClick={handleSearch}
+                icon={<SearchOutlined />}
+                size="small"
+                style={{ width: 90 }}
+              >
+                Search
+              </Button>
+              <Button onClick={() => handleReset(filter.by)} size="small" style={{ width: 90 }}>
+                Delete
+              </Button>
+            </Space>
+          </div>
+        );
+      },
+      filterIcon: () => {
+        const hasFilter = filter.by.some(field => !!filterState[field]);
+        return <SearchOutlined style={{ color: hasFilter ? '#1890ff' : undefined }} />;
+      }
+    };
   };
 
   const handleTableChange: TableProps<T>['onChange'] = (pagination, _, sorter) => {
     const { field, order } = sorter as any;
     const newSortBy = field ?? sortState.sortBy;
-    const newSortDirection = order === 'ascend' ? 'asc' : order === 'descend' ? 'desc' : sortState.sortDirection;
+    const newSortDirection = order === 'ascend' ? 'asc' : order === 'descend' ? 'desc' : defaultSortDirection;
+
+    setPagination(prev => ({
+      ...prev,
+      current: pagination.current!,
+      pageSize: pagination.pageSize!,
+    }));
 
     setSortState({ sortBy: newSortBy, sortDirection: newSortDirection });
+  };
 
+  const filteredColumns = useMemo(() => {
+    return (columns ?? [])
+      .filter(column => visibleColumns.length === 0 || visibleColumns.includes(column.key as string))
+      .map(column => ({
+        ...column,
+        ...getColumnSearchProps(column,
+          () => {
+            setFilterState({
+              ...filterState,
+              ...tempFilterState
+            })
+          }
+        ),
+      }));
+  }, [columns, visibleColumns, filterState, fetchData]);
+
+  useEffect(() => {
     fetchData({
       current: pagination.current,
       pageSize: pagination.pageSize,
-      sortBy: newSortBy,
-      sortDirection: newSortDirection,
+      sortBy: sortState.sortBy,
+      sortDirection: sortState.sortDirection,
+      filter: filterState,
     });
-  };
-
-  // Lọc cột cần hiển thị dựa trên prop visibleColumns
-  const filteredColumns = (columns ?? []).filter((column) => 
-    visibleColumns.length === 0 || visibleColumns.includes(column.key as string)
-  );
-
-  useEffect(() => {
-    fetchData({ current: 1, pageSize: defaultPageSize });
-  }, [apiUrl, JSON.stringify(extraParams)]);
+  }, [pagination.current, pagination.pageSize, sortState, filterState]);
 
   return (
     <Table<T>

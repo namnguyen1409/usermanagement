@@ -133,6 +133,20 @@ public class UserServiceImpl implements UserService {
         return securityUtils.getLoginLogResponses(filterLoginLog, securityUtils.getById(id));
     }
 
+    @PreAuthorize("hasAuthority('EDIT_USER')")
+    @Override
+    public void unlockUser(String id) {
+        var user = securityUtils.getById(id);
+        log.info("Unlocking user with id: {}", id);
+        securityUtils.checkAdminPrivileges(user);
+        if (!user.getIsLocked()) {
+            throw new AppException(ErrorCode.USER_NOT_LOCKED);
+        }
+        user.setIsLocked(false);
+        user.setLockedAt(null);
+        saveUser(user);
+    }
+
     private void handleRolesAndPermissions(Set<String> roleList, Set<String> revokedPermissionList, User user) {
         boolean superAdmin = securityUtils.isSuperAdmin();
 

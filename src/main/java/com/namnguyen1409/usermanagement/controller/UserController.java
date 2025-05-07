@@ -80,6 +80,13 @@ public class UserController {
                 .build();
     }
 
+    @PostMapping("/unlock/{id}")
+    public ApiResponse<Void> unlock(@PathVariable String id) {
+        userService.unlockUser(id);
+        return ApiResponse.<Void>builder()
+                .build();
+    }
+
     /**
      * Lấy lịch sử đăng nhập của người dùng dựa trên ID.
      *

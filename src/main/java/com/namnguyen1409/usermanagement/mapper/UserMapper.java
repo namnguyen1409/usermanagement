@@ -15,10 +15,8 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface UserMapper {
-
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

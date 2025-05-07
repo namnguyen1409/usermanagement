@@ -28,4 +28,6 @@ public interface UserService {
     void restoreUser(String id);
 
     Page<LoginLogResponse> getLoginHistory(String id, FilterLoginLog filterLoginLog);
+
+    void unlockUser(String id);
 }

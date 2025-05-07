@@ -31,4 +31,6 @@ public class UserResponseDetail {
     Boolean isDeleted;
     LocalDateTime deletedAt;
     String deletedBy;
+    Boolean isLocked;
+    LocalDateTime LockedAt;
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  HistoryOutlined,
     LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -26,7 +27,8 @@ const MainLayout: React.FC = () => {
   // Set key active theo pathname
   const getSelectedKey = () => {
     if (location.pathname.includes('/home')) return '1';
-    if (location.pathname.includes('/users')) return '2';
+    if (location.pathname.includes('/login-history')) return '2';
+    if (location.pathname.includes('/users')) return '3';
     return '3';
   };
 
@@ -47,10 +49,16 @@ const MainLayout: React.FC = () => {
               onClick: () => navigate('/home'),
               label: 'Profile',
             },
+            {
+              key: '2',
+              icon: <HistoryOutlined />,
+              onClick: () => navigate('/login-history'),
+              label: 'Login History',
+            },
             ...(rolePermissions.includes('ROLE_ADMIN') || rolePermissions.includes('ROLE_SUPER_ADMIN')
             ? [
                 {
-                  key: '2',
+                  key: '3',
                   icon: <FaUserGroup />,
                   onClick: () => navigate('/users'),
                   label: 'Users Management',
@@ -58,7 +66,7 @@ const MainLayout: React.FC = () => {
               ]
             : []),
             {
-              key: '3',
+              key: '4',
               icon: <LogoutOutlined />,
               onClick: async () => {
                 await axiosPublic.post('/auth/logout', {

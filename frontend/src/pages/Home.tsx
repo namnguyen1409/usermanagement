@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import EditProfileDrawer from "../components/EditProfileDrawer";
 import { useNavigate } from "react-router";
 import ChangePasswordDrawer from "../components/ChangePasswordDrawer";
+import CanAccess from "../components/CanAccess";
 
 const { Title } = Typography;
 
@@ -117,7 +118,7 @@ const Home = () => {
 
                     <Button
                         type="primary"
-                        className="mt-4"
+                        className="mt-4 mr-1"
                         onClick={() => {
                             setDrawerOpen(true);
                         }}
@@ -127,7 +128,7 @@ const Home = () => {
 
                     <Button
                         type="default"
-                        className="mt-2"
+                        className="mt-2 mr-1"
                         onClick={() => {
                             setChangePasswordOpen(true);
                         }}
@@ -135,24 +136,25 @@ const Home = () => {
                         Change Password
                     </Button>
 
-
-                    <Popconfirm
-                        title="Are you sure to delete your account?"
-                        onConfirm={async () => {
-                            try {
-                                await axiosInstance.delete("/profile");
-                                navigate("/login");
-                            } catch (error) {
-                                console.error("Error deleting account:", error);
-                            }
-                        }}
-                        okText="Yes"
-                        cancelText="No"
-                    >
-                        <Button danger className="mt-2">
-                            Delete Account
-                        </Button>
-                    </Popconfirm>
+                    <CanAccess blockRolePermission={['ROLE_SUPER_ADMIN']}>
+                        <Popconfirm
+                            title="Are you sure to delete your account?"
+                            onConfirm={async () => {
+                                try {
+                                    await axiosInstance.delete("/profile");
+                                    navigate("/login");
+                                } catch (error) {
+                                    console.error("Error deleting account:", error);
+                                }
+                            }}
+                            okText="Yes"
+                            cancelText="No"
+                        >
+                            <Button danger className="mt-2">
+                                Delete Account
+                            </Button>
+                        </Popconfirm>
+                    </CanAccess>
     
 
                 </Card>
