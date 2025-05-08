@@ -26,7 +26,7 @@ const GuestLayout: React.FC = () => {
       >
         <Outlet />
       </Content>
-      <Footer className='text-center'>User Management System ©2023 Created by Your Name</Footer>
+      <Footer className='text-center'>User Management System ©2025 Created by Namnguyen</Footer>
     </Layout>
   )
 }

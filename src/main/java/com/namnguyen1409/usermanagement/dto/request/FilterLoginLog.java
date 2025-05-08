@@ -21,4 +21,6 @@ public class FilterLoginLog extends BaseFilterRequest{
     String browserVersion;
     String os;
     String osVersion;
+    Boolean logout;
+
 }

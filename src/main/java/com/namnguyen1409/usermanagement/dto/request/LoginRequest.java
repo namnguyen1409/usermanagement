@@ -39,4 +39,6 @@ public class LoginRequest {
     String username;
     @NotNull(message = "user.password.notNull")
     String password;
+
+    Boolean rememberMe = false;
 }

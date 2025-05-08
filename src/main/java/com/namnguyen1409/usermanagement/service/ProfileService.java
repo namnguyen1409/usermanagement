@@ -19,4 +19,6 @@ public interface ProfileService {
     void delete();
 
     Page<LoginLogResponse> getLoginHistory(FilterLoginLog filterRequest);
+
+    void revokeLoginLog(String loginLogId);
 }

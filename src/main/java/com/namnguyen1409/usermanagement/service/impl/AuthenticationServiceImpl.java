@@ -1,26 +1,26 @@
 package com.namnguyen1409.usermanagement.service.impl;
 
+import com.namnguyen1409.usermanagement.configuration.CustomJwtDecoder;
 import com.namnguyen1409.usermanagement.dto.request.*;
 import com.namnguyen1409.usermanagement.dto.response.CreateUserResponse;
-import com.namnguyen1409.usermanagement.dto.response.IntrospectResponse;
 import com.namnguyen1409.usermanagement.dto.response.LoginResponse;
 import com.namnguyen1409.usermanagement.dto.response.RefreshTokenResponse;
 import com.namnguyen1409.usermanagement.entity.LoginLog;
+import com.namnguyen1409.usermanagement.entity.RefreshToken;
 import com.namnguyen1409.usermanagement.entity.TokenBlacklist;
 import com.namnguyen1409.usermanagement.entity.User;
 import com.namnguyen1409.usermanagement.enums.UserRole;
 import com.namnguyen1409.usermanagement.exception.AppException;
 import com.namnguyen1409.usermanagement.exception.ErrorCode;
 import com.namnguyen1409.usermanagement.mapper.UserMapper;
-import com.namnguyen1409.usermanagement.repository.LoginLogRepository;
-import com.namnguyen1409.usermanagement.repository.RoleRepository;
-import com.namnguyen1409.usermanagement.repository.TokenBlacklistRepository;
-import com.namnguyen1409.usermanagement.repository.UserRepository;
+import com.namnguyen1409.usermanagement.repository.*;
 import com.namnguyen1409.usermanagement.service.AuthenticationService;
 import com.namnguyen1409.usermanagement.utils.SecurityUtils;
-import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,15 +31,19 @@ import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua_parser.Client;
 import ua_parser.Parser;
 
-import java.text.ParseException;
+import java.security.interfaces.RSAPrivateKey;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -57,10 +61,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     RoleRepository roleRepository;
     SecurityUtils securityUtils;
     LoginLogRepository loginLogRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
+
 
     @NonFinal
-    @Value("${jwt.secret-key}")
-    String SECRET_KEY;
+    NimbusJwtDecoder nimbusJwtDecoder;
 
     @NonFinal
     @Value("${jwt.expiration-time}")
@@ -70,24 +75,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Value("${jwt.refresh-time}")
     long REFRESH_TIME;
 
+    @NonFinal
+    @Value("${user.locked-time}")
+    long LOCKED_TIME;
 
-
-    @Override
-    public IntrospectResponse introspect(IntrospectRequest request) {
-        try {
-            var token = request.getToken();
-            boolean isValid = true;
-            try {
-                verifyToken(token, false);
-            } catch (AppException e) {
-                isValid = false;
-            }
-            return IntrospectResponse.builder().valid(isValid).build();
-        } catch (JOSEException | ParseException e) {
-            log.error("Error while introspecting token", e);
-            throw new AppException(ErrorCode.UNCATEGORIZED);
-        }
-    }
 
     @Override
     public CreateUserResponse register(CreateUserRequest request) {
@@ -110,68 +101,134 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         securityUtils.checkUserDeleted(user);
         securityUtils.checkUserLocked(user);
-
         LoginLog loginLog = new LoginLog();
         buildLoginLog(loginLog, user, httpServletRequest);
-        log.info("Login log: {}", loginLog);
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            loginLog.setLogout(true);
             loginLog.setSuccess(false);
             loginLogRepository.save(loginLog);
             if (securityUtils.is5ConsecutiveFailedLoginAttempts(user)) {
                 user.setIsLocked(true);
                 user.setLockedAt(LocalDateTime.now());
                 userRepository.save(user);
-                throw new AppException(ErrorCode.USER_LOCKED);
+
+                String lockedUntil = user.getLockedAt()
+                        .plusMinutes(LOCKED_TIME)
+                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+                throw new AppException(ErrorCode.USER_LOCKED,
+                        String.format(ErrorCode.USER_LOCKED.getMessage(), lockedUntil));
             }
             throw new AppException(ErrorCode.INVALID_CREDENTIALS);
         }
         loginLog.setSuccess(true);
+        String jti = UUID.randomUUID().toString();
+        String token = generateToken(user, jti);
+        loginLog.setJti(jti);
+        String refreshToken = null;
+        if (request.getRememberMe()) {
+            refreshToken = UUID.randomUUID().toString();
+            RefreshToken refreshTokenEntity = RefreshToken.builder()
+                    .user(user)
+                    .token(refreshToken)
+                    .loginLog(loginLog)
+                    .expiresAt(LocalDateTime.now().plusSeconds(REFRESH_TIME))
+                    .revoked(false)
+                    .build();
+            loginLog.setRefreshToken(refreshTokenEntity);
+        }
         loginLogRepository.save(loginLog);
-        String token = generateToken(user);
-        return LoginResponse.builder().token(token).isAuthenticated(true).build();
+        return LoginResponse
+                .builder()
+                .token(token)
+                .refreshToken(refreshToken)
+                .loginLogId(loginLog.getId())
+                .isAuthenticated(true).build();
     }
 
     @Override
     public void logout(LogoutRequest request) {
         var token = request.getToken();
         try {
-            SignedJWT signedJWT = verifyToken(token, false);
-            tokenBlacklistRepository.save(TokenBlacklist.builder().
-                    tokenId(signedJWT.getJWTClaimsSet().getJWTID())
-                    .build());
-        } catch (JOSEException | ParseException e) {
+            if (Objects.isNull(nimbusJwtDecoder)) {
+                nimbusJwtDecoder = NimbusJwtDecoder.withPublicKey(securityUtils.loadPublicKey()).build();
+            }
+            Jwt jwt = nimbusJwtDecoder.decode(token);
+            String jti = jwt.getClaims().get("jti").toString();
+            log.info("jti: {}", jti);
+            var existsByTokenId = tokenBlacklistRepository.existsByTokenId(jti);
+            if (existsByTokenId) {
+                log.error("Token is already blacklisted");
+                throw new AppException(ErrorCode.INVALID_TOKEN);
+            }
+            var tokenBlacklist = TokenBlacklist.builder()
+                    .tokenId(jti)
+                    .build();
+            var loginLog = loginLogRepository.findByJti(jti)
+                    .orElseThrow(() -> new AppException(ErrorCode.INVALID_TOKEN));
+
+            loginLog.setLogout(true);
+
+            if (loginLog.getRefreshToken() != null) {
+                var refreshToken = loginLog.getRefreshToken();
+                refreshToken.setRevoked(true);
+                loginLog.setRefreshToken(refreshToken);
+            }
+            loginLogRepository.save(loginLog);
+            tokenBlacklistRepository.save(tokenBlacklist);
+        } catch (Exception e) {
+            log.error("Error while logging out", e);
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+    }
+
+    @Transactional
+    @Override
+    public RefreshTokenResponse refreshToken(RefreshTokenRequest token) {
+        try {
+            RefreshToken refreshToken = refreshTokenRepository.findByToken(token.getToken());
+            if (refreshToken == null) {
+                throw new AppException(ErrorCode.INVALID_TOKEN);
+            }
+            if (refreshToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+                throw new AppException(ErrorCode.TOKEN_EXPIRED);
+            }
+            if (refreshToken.getRevoked()) {
+                throw new AppException(ErrorCode.INVALID_TOKEN);
+            }
+            var user = refreshToken.getUser();
+            securityUtils.checkUserDeleted(user);
+            String jti = UUID.randomUUID().toString();
+            String newToken = generateToken(user, jti);
+            var loginLog = refreshToken.getLoginLog();
+            tokenBlacklistRepository.save(new TokenBlacklist(loginLog.getJti(), LocalDateTime.now()));
+            loginLog.setJti(jti);
+            loginLogRepository.save(loginLog);
+            return RefreshTokenResponse.builder()
+                    .token(newToken)
+                    .build();
+        } catch (Exception e) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
     }
 
     @Override
-    public RefreshTokenResponse refreshToken(RefreshTokenRequest token) {
-        try {
-            SignedJWT signedJWT = verifyToken(token.getToken(), true);
-            String newToken = generateToken(userRepository
-                    .findByIdAndIsDeletedFalse(signedJWT.getJWTClaimsSet().getSubject())
-                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND)));
-            tokenBlacklistRepository.save(TokenBlacklist.builder()
-                    .tokenId(signedJWT.getJWTClaimsSet().getJWTID())
-                    .build());
-            return RefreshTokenResponse.builder().token(newToken).build();
-        } catch (JOSEException | ParseException e) {
-            log.error("Error while refreshing token", e);
-            throw new AppException(ErrorCode.UNAUTHORIZED);
+    public void introspect(IntrospectRequest introspectRequest) {
+        if (introspectRequest.getJti() == null || introspectRequest.getJti().isEmpty()) {
+            throw new AppException(ErrorCode.INVALID_TOKEN);
+        }
+
+        var existsByTokenId = tokenBlacklistRepository.existsByTokenId(introspectRequest.getJti());
+        if (existsByTokenId) {
+            throw new AppException(ErrorCode.INVALID_TOKEN);
         }
     }
 
-    /**
-     * Sinh mã JWT cho người dùng được cung cấp, bao gồm việc thiết lập
-     * thông tin tiêu đề (header) và nội dung (claims).
-     *
-     * @param user Đối tượng người dùng cho phép tạo mã thông báo.
-     * @return Một chuỗi chứa mã thông báo JWT đã ký và được tuần tự hóa.
-     * @throws RuntimeException Nếu xảy ra lỗi khi ký hoặc tạo mã thông báo.
-     */
-    private String generateToken(User user) {
+    private String generateToken(User user, String jti) {
         securityUtils.checkUserDeleted(user);
-        JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
+
+        RSAPrivateKey privateKey = securityUtils.loadPrivateKey();
+
+        JWSHeader header = new JWSHeader(JWSAlgorithm.RS256);
 
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                 .subject(user.getId())
@@ -180,54 +237,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .expirationTime(new Date(
                         Instant.now().plus(EXPIRATION_TIME, ChronoUnit.SECONDS).toEpochMilli()
                 ))
-                .jwtID(UUID.randomUUID().toString())
+                .jwtID(jti)
                 .claim("scope", buildScope(user))
                 .build();
-        Payload payload = new Payload(claimsSet.toJSONObject());
-        JWSObject jwsObject = new JWSObject(header, payload);
 
+        SignedJWT signedJWT = new SignedJWT(header, claimsSet);
+        JWSSigner signer = new RSASSASigner(privateKey);
         try {
-            jwsObject.sign(new MACSigner(SECRET_KEY.getBytes()));
-            return jwsObject.serialize();
+            signedJWT.sign(signer);
+            return signedJWT.serialize();
         } catch (JOSEException e) {
-            log.error("Cannot create token", e);
-            throw new RuntimeException(e);
+            log.error("Error while signing JWT", e);
+            throw new AppException(ErrorCode.UNCATEGORIZED);
         }
     }
 
-    /**
-     * Xác minh tính hợp lệ của mã JWT và trả về đối tượng SignedJWT nếu mã hợp lệ.
-     *
-     * @param token Chuỗi mã JWT cần được xác minh.
-     * @param isRefreshToken Xác định mã có phải là mã refresh hay không.
-     *                        - Nếu là mã refresh, thời gian hết hạn được tính dựa trên thời điểm phát hành và thời gian refresh.
-     *                        - Nếu không, thời gian hết hạn sẽ lấy từ thuộc tính "expirationTime" trong mã.
-     * @return Đối tượng {@link SignedJWT} sau khi xác minh nếu mã hợp lệ.
-     * @throws JOSEException Nếu có lỗi xảy ra khi xác minh chữ ký của mã.
-     * @throws ParseException Nếu có lỗi xảy ra khi phân tích cú pháp mã JWT.
-     * @throws AppException Nếu mã không hợp lệ, đã hết hạn, hoặc đã bị đưa vào danh sách đen.
-     */
-    private SignedJWT verifyToken(String token, boolean isRefreshToken) throws JOSEException, ParseException {
-        SignedJWT signedJWT = SignedJWT.parse(token);
-        JWSVerifier verifier = new MACVerifier(SECRET_KEY.getBytes());
-        Date expirationTime = isRefreshToken ?
-                new Date(signedJWT.getJWTClaimsSet().getIssueTime().toInstant().plus(REFRESH_TIME, ChronoUnit.SECONDS).toEpochMilli()) :
-                signedJWT.getJWTClaimsSet().getExpirationTime();
-        var verified = signedJWT.verify(verifier);
-        if (!(verified && expirationTime.after(new Date()))) throw new AppException(ErrorCode.UNAUTHORIZED);
-        if (tokenBlacklistRepository.existsByTokenId(signedJWT.getJWTClaimsSet().getJWTID())) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
-        return signedJWT;
-    }
-
-    /**
-     * Tạo chuỗi scope từ thông tin người dùng bao gồm vai trò và các quyền,
-     * bỏ qua các quyền đã bị thu hồi của người dùng.
-     *
-     * @param user Thông tin người dùng bao gồm danh sách vai trò và các quyền liên quan.
-     * @return Chuỗi scope được xây dựng từ vai trò và quyền hợp lệ của người dùng.
-     */
     private String buildScope(User user) {
         StringJoiner stringJoiner = new StringJoiner(" ");
         if (user.getRoles() != null) {
@@ -242,7 +266,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
         return stringJoiner.toString();
     }
-
 
     private void buildLoginLog(LoginLog loginLog, User user, HttpServletRequest request) {
         loginLog.setUser(user);

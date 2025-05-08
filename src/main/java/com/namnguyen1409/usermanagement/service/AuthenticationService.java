@@ -16,18 +16,6 @@ import jakarta.servlet.http.HttpServletRequest;
  */
 public interface AuthenticationService {
 
-    /**
-     * Phương thức này kiểm tra tính hợp lệ của một jwt token đã cho
-     * thông qua việc xác minh và trả về kết quả thông qua đối tượng {@link IntrospectResponse}.
-     *
-     * @param request Đối tượng {@link IntrospectRequest} chứa thông tin jwt cần kiểm tra.
-     * @return Đối tượng IntrospectResponse với thuộc tính {@code valid} cho biết jwt
-     *         có hợp lệ hay không.
-     *         <li> {@code true}: Jwt hợp lệ.
-     *         <li>{@code false}: Jwt không hợp lệ.
-     * @throws AppException Nếu xảy ra lỗi không xác định hoặc lỗi khi xử lý jwt.
-     */
-    IntrospectResponse introspect(IntrospectRequest request) ;
 
     /**
      * Phương thức này thực hiện đăng ký một tài khoản người dùng mới với thông tin được cung cấp
@@ -86,4 +74,6 @@ public interface AuthenticationService {
      *         </ul>
      */
     RefreshTokenResponse refreshToken(RefreshTokenRequest token);
+
+    void introspect(IntrospectRequest introspectRequest);
 }

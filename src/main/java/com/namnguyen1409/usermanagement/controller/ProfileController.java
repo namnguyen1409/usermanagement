@@ -70,4 +70,11 @@ public class ProfileController {
                 .build();
     }
 
+    @PostMapping("/revoke/{loginLogId}")
+    public ApiResponse<Void> revokeLoginLog(@PathVariable String loginLogId) {
+        profileService.revokeLoginLog(loginLogId);
+        return ApiResponse.<Void>builder()
+                .build();
+    }
+
 }

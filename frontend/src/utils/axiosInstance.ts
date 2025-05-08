@@ -47,12 +47,18 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true
       isRefreshing = true
 
-      const oldToken = localStorage.getItem('accessToken')
+      const refreshToken = localStorage.getItem('refreshToken')
+      if (!refreshToken) {
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
+        window.location.href = '/login'
+        return Promise.reject(error)
+      }
 
       return new Promise((resolve, reject) => {
         axios
           .post(`${import.meta.env.VITE_API_URL}/auth/refresh-token`, {
-            token: oldToken
+            token: refreshToken
           })
           .then(({ data }) => {
             const newToken = data?.data?.token

@@ -15,8 +15,10 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,9 +26,21 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.security.KeyFactory;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.List;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -41,64 +55,61 @@ public class SecurityUtils {
     @Value("${user.locked-time}")
     long LOCKED_TIME;
 
-    /**
-     * Lấy id người dùng hiện tại từ ngữ cảnh bảo mật.
-     * <p>
-     * Phương thức này truy cập vào {@link SecurityContextHolder} để lấy thông tin xác thực
-     * và trả về id của người dùng hiện tại.
-     *
-     * @return Id người dùng hiện tại dưới dạng {@link String}.
-     */
+    @NonFinal
+    @Value("${jwt.private-key-location}")
+    Resource privateKeyLocation;
+
+    @NonFinal
+    @Value("${jwt.public-key-location}")
+    Resource publicKeyLocation;
+
+    public RSAPrivateKey loadPrivateKey() {
+        try (InputStream inputStream = privateKeyLocation.getInputStream()) {
+            String pem = new BufferedReader(new InputStreamReader(inputStream))
+                    .lines()
+                    .filter(line -> !line.startsWith("-----"))
+                    .collect(Collectors.joining());
+
+            byte[] keyBytes = Base64.getDecoder().decode(pem);
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
+        } catch (Exception e) {
+            log.error("Error loading private key: {}", e.getMessage());
+            throw new AppException(ErrorCode.UNCATEGORIZED);
+        }
+    }
+
+    public RSAPublicKey loadPublicKey() {
+        try (InputStream inputStream = publicKeyLocation.getInputStream()) {
+            String pem = new BufferedReader(new InputStreamReader(inputStream))
+                    .lines()
+                    .filter(line -> !line.startsWith("-----"))
+                    .collect(Collectors.joining());
+
+            byte[] keyBytes = Base64.getDecoder().decode(pem);
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            return (RSAPublicKey) keyFactory.generatePublic(new X509EncodedKeySpec(keyBytes));
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.UNCATEGORIZED);
+        }
+    }
+
     public String getCurrentUserId() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
-
-    /**
-     * Lấy thông tin người dùng hiện tại từ ngữ cảnh bảo mật.
-     * <p>
-     * Phương thức này sẽ sử dụng id người dùng hiện tại từ SecurityContext để truy vấn thông tin người dùng
-     * trong cơ sở dữ liệu. Nếu không tìm thấy người dùng nào khớp với id người dùng,
-     * phương thức sẽ ném ngoại lệ {@code AppException} với mã lỗi {@link ErrorCode#USER_NOT_FOUND}.
-     *
-     * @return Đối tượng {@link User} đại diện cho thông tin người dùng hiện tại.
-     * @throws AppException Nếu không tìm thấy người dùng trong hệ thống.
-     */
     public User getCurrentUser() {
         String userId = getCurrentUserId();
         return userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 
-    /**
-     * Lấy thông tin người dùng dựa trên ID.
-     * <p>
-     * Phương thức này tìm kiếm người dùng trong cơ sở dữ liệu dựa trên ID được cung cấp.
-     * Nếu không tìm thấy người dùng nào khớp với ID này, ngoại lệ {@code AppException} sẽ được ném ra
-     * với mã lỗi {@link ErrorCode#USER_NOT_FOUND}.
-     *
-     * @param id ID của người dùng cần tìm kiếm.
-     * @return Đối tượng {@link User} tương ứng với ID được cung cấp.
-     * @throws AppException Nếu không tìm thấy người dùng trong cơ sở dữ liệu.
-     */
     public User getById(String id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 
-
-    /**
-     * Kiểm tra xung đột thông tin người dùng theo các trường username, email và số điện thoại.
-     * <p>
-     * Phương thức này thực hiện kiểm tra xem tên đăng nhập (username), email hoặc số điện thoại
-     * có gây ra xung đột với bất kỳ tài khoản người dùng nào khác trong hệ thống hay không.
-     * Nếu có xung đột, một ngoại lệ {@code AppException} với mã lỗi {@link ErrorCode#USER_EXISTED}
-     * sẽ được ném ra.
-     *
-     * @param request {@link UpdateUserRequest} chứa thông tin người dùng cần kiểm tra.
-     * @param userId ID của người dùng hiện tại để loại trừ khỏi kiểm tra xung đột.
-     * @throws AppException Nếu phát hiện thông tin gây xung đột với người dùng khác.
-     */
     public void checkUserConflict(UpdateUserRequest request, String userId) {
         if (request.getUsername() != null && userRepository.existsByUsernameAndIdNot(request.getUsername(), userId)) {
             throw new AppException(ErrorCode.USER_EXISTED);
@@ -111,13 +122,6 @@ public class SecurityUtils {
         }
     }
 
-    /**
-     * Kiểm tra xem người dùng có bị đánh dấu là đã xóa hay không.
-     * Nếu người dùng đã bị xóa, phương thức sẽ ném ra một ngoại lệ {@code AppException} với mã lỗi {@link ErrorCode#USER_DELETED}.
-     *
-     * @param user Đối tượng {@link User} cần kiểm tra trạng thái xóa.
-     * @throws AppException Nếu người dùng đã bị xóa (trường isDeleted là {@code true}).
-     */
     public void checkUserDeleted(User user) {
         if (user.getIsDeleted()) {
             throw new AppException(ErrorCode.USER_DELETED);
@@ -132,7 +136,12 @@ public class SecurityUtils {
                 user.setLockedAt(null);
                 userRepository.save(user);
             } else {
-                throw new AppException(ErrorCode.USER_LOCKED);
+                assert user.getLockedAt() != null;
+                String lockedUntil = user.getLockedAt()
+                        .plusMinutes(LOCKED_TIME)
+                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                throw new AppException(ErrorCode.USER_LOCKED,
+                        String.format(ErrorCode.USER_LOCKED.getMessage(), lockedUntil));
             }
         }
     }
@@ -163,11 +172,6 @@ public class SecurityUtils {
         return loginLogRepository.findAll(spec, pageable).map(loginLogMapper::toLoginLogResponse);
     }
 
-    /**
-     * Kiểm tra xem người dùng hiện tại có quyền Super Admin hay không.
-     *
-     * @return {@code true} nếu người dùng hiện tại có quyền Super Admin, ngược lại trả về {@code false}.
-     */
     public boolean isSuperAdmin() {
         return SecurityContextHolder.getContext().getAuthentication()
                 .getAuthorities()
@@ -175,16 +179,6 @@ public class SecurityUtils {
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_SUPER_ADMIN"));
     }
 
-    /**
-     * Kiểm tra quyền của người dùng hiện tại với tư cách Super Admin hoặc Admin đối với một người dùng mục tiêu.
-     * <p>
-     * Phương thức này đảm bảo rằng:
-     * - Không ai có thể cập nhật thông tin của Super Admin.
-     * - Chỉ Super Admin mới có quyền cập nhật thông tin của Admin khác.
-     *
-     * @param targetUser Người dùng mục tiêu (đối tượng {@link User}) cần kiểm tra quyền truy cập.
-     * @throws AppException Nếu người dùng mục tiêu là Super Admin hoặc nếu người gọi không phải Super Admin và cố gắng cập nhật Admin.
-     */
     public void checkAdminPrivileges(User targetUser) {
         boolean isTargetAdmin = targetUser.getRoles().stream()
                 .anyMatch(role -> role.getName().name().equals("ADMIN"));

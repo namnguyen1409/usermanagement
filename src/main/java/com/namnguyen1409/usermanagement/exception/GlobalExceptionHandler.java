@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -42,9 +43,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(errorCode.getStatusCode())
                 .body(ApiResponse.builder()
                         .code(errorCode.getCode())
+                        .message(exception.getMessage())
+                        .build());
+    }
+
+    @ExceptionHandler(value = JwtException.class)
+    ResponseEntity<ApiResponse<Object>> handlingJwtException(JwtException exception) {
+        ErrorCode errorCode = ErrorCode.INVALID_TOKEN;
+
+        return ResponseEntity.status(errorCode.getStatusCode())
+                .body(ApiResponse.builder()
+                        .code(errorCode.getCode())
                         .message(errorCode.getMessage())
                         .build());
     }
+
 
     @ExceptionHandler(BindException.class)
     public ResponseEntity<ApiResponse<Object>> handleBindException(BindException e) {

@@ -26,6 +26,15 @@ public class LoginLog {
     @JoinColumn(name = "user_id", nullable = false)
     User user;
 
+    @OneToOne(mappedBy = "loginLog", cascade = CascadeType.ALL)
+    RefreshToken refreshToken;
+
+    @Column
+    String jti; // JWT ID
+
+    @Column
+    Boolean logout = false;
+
     @CreatedDate
     @Column(nullable = false)
     LocalDateTime createdAt;

@@ -9,10 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @Slf4j
@@ -34,8 +31,10 @@ public class AuthenticationController {
     }
 
     @PostMapping("/logout")
-    ApiResponse<Void> logout(@RequestBody LogoutRequest token) {
-        authenticationService.logout(token);
+    ApiResponse<Void> logout(@RequestHeader("Authorization") String authorization) {
+        String token = authorization.replace("Bearer ", "");
+        authenticationService.logout(LogoutRequest.builder()
+                            .token(token).build());
         return ApiResponse.<Void>builder()
                 .build();
     }
@@ -49,14 +48,6 @@ public class AuthenticationController {
                 .build();
     }
 
-
-    @PostMapping("/introspect")
-    ApiResponse<IntrospectResponse> introspect(@RequestBody IntrospectRequest token) {
-        var response = authenticationService.introspect(token);
-        return ApiResponse.<IntrospectResponse>builder()
-                .data(response)
-                .build();
-    }
 
     @PostMapping("/register")
     ApiResponse<CreateUserResponse> register(@RequestBody @Validated CreateUserRequest request) {

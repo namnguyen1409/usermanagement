@@ -50,7 +50,7 @@ const ReusableTable = <T extends object>({
   rowKey = 'id',
   defaultPageSize = 10,
   defaultSortBy = 'createdAt',
-  defaultSortDirection = 'asc',
+  defaultSortDirection = 'desc',
   visibleColumns = [],
   ...rest
 }: ReusableTableProps<T>) => {
@@ -242,7 +242,7 @@ const ReusableTable = <T extends object>({
       sortDirection: sortState.sortDirection,
       filter: filterState
     })
-  }, [pagination.current, pagination.pageSize, sortState, filterState])
+  }, [pagination.current, pagination.pageSize, sortState, filterState, apiUrl])
 
   return (
     <Table<T>

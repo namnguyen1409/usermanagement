@@ -1,4 +1,31 @@
 package com.namnguyen1409.usermanagement.scheduler;
 
+import com.namnguyen1409.usermanagement.repository.TokenBlacklistRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
 public class TokenBlackListScheduler {
+
+    private final TokenBlacklistRepository tokenBlacklistRepository;
+    @Value("${jwt.expiration-time}")
+    long expirationTime;
+
+    @Transactional
+    @Scheduled(cron = "15 * * * * *")
+    public void removeExpiredTokens() {
+        log.info("Removing expired tokens");
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime exp = now.minusSeconds(expirationTime);
+        tokenBlacklistRepository.deleteExpiredTokens(exp);
+    }
+
 }

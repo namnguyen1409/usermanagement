@@ -5,9 +5,13 @@ import com.namnguyen1409.usermanagement.dto.request.UpdateUserPasswordRequest;
 import com.namnguyen1409.usermanagement.dto.request.UpdateUserRequest;
 import com.namnguyen1409.usermanagement.dto.response.LoginLogResponse;
 import com.namnguyen1409.usermanagement.dto.response.UserResponse;
+import com.namnguyen1409.usermanagement.entity.RefreshToken;
+import com.namnguyen1409.usermanagement.entity.TokenBlacklist;
 import com.namnguyen1409.usermanagement.exception.AppException;
 import com.namnguyen1409.usermanagement.exception.ErrorCode;
 import com.namnguyen1409.usermanagement.mapper.UserMapper;
+import com.namnguyen1409.usermanagement.repository.LoginLogRepository;
+import com.namnguyen1409.usermanagement.repository.TokenBlacklistRepository;
 import com.namnguyen1409.usermanagement.repository.UserRepository;
 import com.namnguyen1409.usermanagement.service.ProfileService;
 import com.namnguyen1409.usermanagement.utils.SecurityUtils;
@@ -19,6 +23,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 
 @Service
@@ -30,6 +37,8 @@ public class ProfileServiceImpl implements ProfileService {
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;
     SecurityUtils securityUtils;
+    private final LoginLogRepository loginLogRepository;
+    private final TokenBlacklistRepository tokenBlacklistRepository;
 
     @Override
     public UserResponse view() {
@@ -81,6 +90,24 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public Page<LoginLogResponse> getLoginHistory(FilterLoginLog filterRequest) {
         return securityUtils.getLoginLogResponses(filterRequest, securityUtils.getCurrentUser());
+    }
+
+    @Transactional
+    @Override
+    public void revokeLoginLog(String loginLogId) {
+        var user = securityUtils.getCurrentUser();
+        var loginLog = loginLogRepository.findById(loginLogId)
+                .orElseThrow(() -> new AppException(ErrorCode.LOGIN_LOG_NOT_FOUND));
+
+        if (!loginLog.getUser().getId().equals(user.getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        loginLog.setLogout(true);
+        RefreshToken refreshToken = loginLog.getRefreshToken();
+        if (refreshToken != null) {
+            refreshToken.setRevoked(true);
+        }
+        tokenBlacklistRepository.save(new TokenBlacklist(loginLog.getJti(), LocalDateTime.now()));
     }
 
 }

@@ -1,8 +1,10 @@
-import { Button, Card, Col, Form, Input, message, Row, Typography } from 'antd'
+import { Button, Card, Checkbox, Col, Form, Input, message, notification, Row, Typography } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router'
-import axiosPublic from '../utils/axiosPublic'
+import { apiPublicCall } from '../utils/axiosPublic'
 import { useState } from 'react'
+import type { ApiResponse, LoginResponse } from '../types/api.response'
+import type { LoginRequest } from '../types/api.request'
 
 const { Title, Text } = Typography
 
@@ -11,13 +13,40 @@ const Login = () => {
   const navigate = useNavigate()
 
   const handleLogin = async (values: any) => {
-    const { username, password } = values
+    const loginRequest: LoginRequest = {
+      username: values.username,
+      password: values.password,
+      rememberMe: values.rememberMe,
+    }
     setLoading(true)
     try {
-      const response = await axiosPublic.post('/auth/login', { username, password })
-      localStorage.setItem('accessToken', response.data.data.token)
-      message.success('Login successful!')
-      navigate('/home')
+      const response: ApiResponse<LoginResponse> = await apiPublicCall<LoginResponse, LoginRequest>(
+        '/auth/login',
+        'POST',
+        loginRequest,
+      )
+      if (response.code === 200) {
+        localStorage.setItem('accessToken', response.data.token)
+        if (response.data.refreshToken) {
+          localStorage.setItem('refreshToken', response.data.refreshToken)
+        } else {
+          localStorage.removeItem('refreshToken')
+        }
+        if (response.data.loginLogId) {
+          localStorage.setItem('loginLogId', response.data.loginLogId)
+        }
+        message.success('Login successful!')
+        navigate('/home')
+      } else {
+        notification.error(
+          {
+            message: response.code,
+            description: response.message,
+            placement: 'topRight',
+            duration: 3,
+          } as any,
+        )
+      }
     } catch (error) {
       message.error('Login failed. Please check your credentials.')
     } finally {
@@ -45,6 +74,11 @@ const Login = () => {
 
               <Form.Item name='password' label='Password' rules={[{ required: true }]}>
                 <Input.Password prefix={<LockOutlined />} placeholder='Password' className='rounded-md' />
+              </Form.Item>
+              <Form.Item name='rememberMe' valuePropName='checked'>
+                <Checkbox className='text-sm'>
+                  Remember me
+                </Checkbox>
               </Form.Item>
 
               <Form.Item>

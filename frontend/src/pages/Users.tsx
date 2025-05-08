@@ -28,13 +28,13 @@ const Users = () => {
   const [showUserDetails, setShowUserDetails] = useState(false)
   const [showUserLoginHistory, setShowUserLoginHistory] = useState(false)
 
-  const [visibleColumns, setVisibleColumns] = useState<string[]>([
-    'username',
-    'firstName',
-    'lastName',
-    'email',
-    'action'
-  ])
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(
+    localStorage.getItem('userTableColumns')?.split(',') || []
+  )
+  const handleVisibleColumnsChange = (value: string[]) => {
+    setVisibleColumns(value)
+    localStorage.setItem('userTableColumns', value.join(','))
+  }
 
   const userColumns = [
     {
@@ -201,7 +201,7 @@ const Users = () => {
         defaultValue={visibleColumns}
         style={{ width: '100%', marginBottom: 16 }}
         onChange={(value) => {
-          setVisibleColumns(value)
+          handleVisibleColumnsChange(value)
         }}
       >
         {userColumns.map((column) => (

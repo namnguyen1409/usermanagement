@@ -52,6 +52,11 @@ public class LoginLogSpecification {
                 predicates.add(criteriaBuilder.like(root.get("osVersion"), "%" + filterRequest.getOsVersion() + "%"));
             }
 
+            if (filterRequest.getLogout() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("logout"), filterRequest.getLogout()));
+            }
+
+
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }

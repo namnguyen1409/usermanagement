@@ -22,5 +22,5 @@ public class BaseFilterRequest {
     @Builder.Default
     String sortBy = "createdAt";
     @Builder.Default
-    String sortDirection = "asc";
+    String sortDirection = "desc";
 }

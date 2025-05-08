@@ -21,4 +21,5 @@ public class LoginLogResponse {
     String browserVersion;
     String os;
     String osVersion;
+    Boolean logout;
 }
