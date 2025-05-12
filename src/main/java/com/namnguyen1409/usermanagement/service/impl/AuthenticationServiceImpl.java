@@ -1,6 +1,5 @@
 package com.namnguyen1409.usermanagement.service.impl;
 
-import com.namnguyen1409.usermanagement.configuration.CustomJwtDecoder;
 import com.namnguyen1409.usermanagement.dto.request.*;
 import com.namnguyen1409.usermanagement.dto.response.CreateUserResponse;
 import com.namnguyen1409.usermanagement.dto.response.LoginResponse;
@@ -24,6 +23,7 @@ import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -31,7 +31,6 @@ import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -61,7 +60,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     RoleRepository roleRepository;
     SecurityUtils securityUtils;
     LoginLogRepository loginLogRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
+    RefreshTokenRepository refreshTokenRepository;
 
 
     @NonFinal
@@ -96,7 +95,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Transactional(noRollbackFor = {AppException.class})
     @Override
-    public LoginResponse login(LoginRequest request, HttpServletRequest httpServletRequest) {
+    public LoginResponse login(LoginRequest request,
+                               HttpServletRequest httpServletRequest,
+                               HttpServletResponse httpServletResponse
+    ) {
         var user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         securityUtils.checkUserDeleted(user);
@@ -129,12 +131,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             refreshToken = UUID.randomUUID().toString();
             RefreshToken refreshTokenEntity = RefreshToken.builder()
                     .user(user)
-                    .token(refreshToken)
+                    .token(securityUtils.hashRefreshToken(refreshToken))
                     .loginLog(loginLog)
                     .expiresAt(LocalDateTime.now().plusSeconds(REFRESH_TIME))
                     .revoked(false)
                     .build();
             loginLog.setRefreshToken(refreshTokenEntity);
+            loginLog.setExpiredAt(LocalDateTime.now().plusSeconds(REFRESH_TIME));
+            securityUtils.setRefreshTokenCookie(httpServletResponse, refreshToken);
+        } else {
+            loginLog.setExpiredAt(LocalDateTime.now().plusSeconds(EXPIRATION_TIME));
         }
         loginLogRepository.save(loginLog);
         return LoginResponse
@@ -146,7 +152,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public void logout(LogoutRequest request) {
+    public void logout(LogoutRequest request, HttpServletResponse httpServletResponse) {
         var token = request.getToken();
         try {
             if (Objects.isNull(nimbusJwtDecoder)) {
@@ -154,6 +160,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             }
             Jwt jwt = nimbusJwtDecoder.decode(token);
             String jti = jwt.getClaims().get("jti").toString();
+            LocalDateTime exp = LocalDateTime.parse(
+                    jwt.getClaims().get("exp").toString(),
+                    DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+            );
             log.info("jti: {}", jti);
             var existsByTokenId = tokenBlacklistRepository.existsByTokenId(jti);
             if (existsByTokenId) {
@@ -162,6 +172,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             }
             var tokenBlacklist = TokenBlacklist.builder()
                     .tokenId(jti)
+                    .expiredAt(exp)
                     .build();
             var loginLog = loginLogRepository.findByJti(jti)
                     .orElseThrow(() -> new AppException(ErrorCode.INVALID_TOKEN));
@@ -175,6 +186,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             }
             loginLogRepository.save(loginLog);
             tokenBlacklistRepository.save(tokenBlacklist);
+            securityUtils.clearRefreshTokenCookie(httpServletResponse);
         } catch (Exception e) {
             log.error("Error while logging out", e);
             throw new AppException(ErrorCode.UNAUTHORIZED);
@@ -183,12 +195,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Transactional
     @Override
-    public RefreshTokenResponse refreshToken(RefreshTokenRequest token) {
+    public RefreshTokenResponse refreshToken(HttpServletRequest httpServletRequest) {
         try {
-            RefreshToken refreshToken = refreshTokenRepository.findByToken(token.getToken());
-            if (refreshToken == null) {
-                throw new AppException(ErrorCode.INVALID_TOKEN);
-            }
+            String token = securityUtils.getRefreshTokenFromCookie(httpServletRequest);
+            RefreshToken refreshToken = refreshTokenRepository.findByToken(securityUtils.hashRefreshToken(token))
+                    .orElseThrow(() -> new AppException(ErrorCode.INVALID_TOKEN));
             if (refreshToken.getExpiresAt().isBefore(LocalDateTime.now())) {
                 throw new AppException(ErrorCode.TOKEN_EXPIRED);
             }

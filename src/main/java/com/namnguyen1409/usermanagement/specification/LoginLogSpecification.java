@@ -27,6 +27,12 @@ public class LoginLogSpecification {
             if(filterRequest.getCreatedAtTo() != null) {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), filterRequest.getCreatedAtTo()));
             }
+            if (filterRequest.getExpiredAtFrom() != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("expiredAt"), filterRequest.getExpiredAtFrom()));
+            }
+            if (filterRequest.getExpiredAtTo() != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("expiredAt"), filterRequest.getExpiredAtTo()));
+            }
             if (filterRequest.getSuccess() != null) {
                 predicates.add(criteriaBuilder.equal(root.get("success"), filterRequest.getSuccess()));
             }

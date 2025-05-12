@@ -1,7 +1,7 @@
 package com.namnguyen1409.usermanagement.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.namnguyen1409.usermanagement.dto.response.ApiResponse;
+import com.namnguyen1409.usermanagement.dto.response.CustomApiResponse;
 import com.namnguyen1409.usermanagement.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,13 +19,13 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
         response.setStatus(errorCode.getStatusCode().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        ApiResponse<?> apiResponse = ApiResponse.builder()
+        CustomApiResponse<?> customApiResponse = CustomApiResponse.builder()
                 .code(errorCode.getCode())
                 .message(errorCode.getMessage())
                 .build();
         ObjectMapper objectMapper = new ObjectMapper();
 
-        response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
+        response.getWriter().write(objectMapper.writeValueAsString(customApiResponse));
         response.flushBuffer();
     }
 }

@@ -61,7 +61,7 @@ const Home = () => {
     <div className='flex items-center justify-center bg-gray-50 px-4'>
       {profile && (
         <Card
-          className='w-full max-w-3xl shadow-lg rounded-xl'
+          className='w-full max-w-3xl shadow-lg rounded-xl !mt-4 !mb-4'
           title={
             <div className='flex items-center gap-4 h-24'>
               <Avatar size={64} icon={<UserOutlined />} />

@@ -1,12 +1,8 @@
 package com.namnguyen1409.usermanagement.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -23,7 +19,6 @@ import java.time.LocalDateTime;
 public class TokenBlacklist {
     @Id
     String tokenId;
-
-    @CreatedDate
-    LocalDateTime createdAt;
+    @Column(nullable = false)
+    LocalDateTime expiredAt;
 }

@@ -30,7 +30,7 @@ public class LoginLog {
     RefreshToken refreshToken;
 
     @Column
-    String jti; // JWT ID
+    String jti;
 
     @Column
     Boolean logout = false;
@@ -38,6 +38,9 @@ public class LoginLog {
     @CreatedDate
     @Column(nullable = false)
     LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    LocalDateTime expiredAt;
 
     @Column(nullable = false)
     Boolean success;
@@ -63,20 +66,4 @@ public class LoginLog {
     @Column(nullable = false)
     String osVersion;
 
-    @Override
-    public String toString() {
-        return "LoginLog{" +
-                "id='" + id + '\'' +
-                ", user=" + user +
-                ", createdAt=" + createdAt +
-                ", success=" + success +
-                ", userAgent='" + userAgent + '\'' +
-                ", ipAddress='" + ipAddress + '\'' +
-                ", browser='" + browser + '\'' +
-                ", browserVersion='" + browserVersion + '\'' +
-                ", os='" + os + '\'' +
-                ", osVersion='" + osVersion + '\'' +
-                ", device='" + device + '\'' +
-                '}';
-    }
 }

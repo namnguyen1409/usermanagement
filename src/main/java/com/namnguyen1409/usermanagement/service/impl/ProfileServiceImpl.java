@@ -5,6 +5,7 @@ import com.namnguyen1409.usermanagement.dto.request.UpdateUserPasswordRequest;
 import com.namnguyen1409.usermanagement.dto.request.UpdateUserRequest;
 import com.namnguyen1409.usermanagement.dto.response.LoginLogResponse;
 import com.namnguyen1409.usermanagement.dto.response.UserResponse;
+import com.namnguyen1409.usermanagement.entity.LoginLog;
 import com.namnguyen1409.usermanagement.entity.RefreshToken;
 import com.namnguyen1409.usermanagement.entity.TokenBlacklist;
 import com.namnguyen1409.usermanagement.exception.AppException;
@@ -107,7 +108,7 @@ public class ProfileServiceImpl implements ProfileService {
         if (refreshToken != null) {
             refreshToken.setRevoked(true);
         }
-        tokenBlacklistRepository.save(new TokenBlacklist(loginLog.getJti(), LocalDateTime.now()));
+        tokenBlacklistRepository.save(new TokenBlacklist(loginLog.getJti(), loginLog.getExpiredAt()));
     }
 
 }

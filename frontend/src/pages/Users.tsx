@@ -123,7 +123,8 @@ const Users = () => {
         type: 'date',
         placeholder: 'Search by birthday',
         by: ['birthdayFrom', 'birthdayTo'],
-        format: 'YYYY-MM-DD'
+        format: 'YYYY-MM-DD',
+        viewFormat: 'DD/MM/YYYY'
       }
     },
     {

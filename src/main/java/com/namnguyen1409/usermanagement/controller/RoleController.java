@@ -1,6 +1,6 @@
 package com.namnguyen1409.usermanagement.controller;
 
-import com.namnguyen1409.usermanagement.dto.response.ApiResponse;
+import com.namnguyen1409.usermanagement.dto.response.CustomApiResponse;
 import com.namnguyen1409.usermanagement.dto.response.RoleResponse;
 import com.namnguyen1409.usermanagement.service.RoleService;
 import lombok.AccessLevel;
@@ -26,9 +26,9 @@ public class RoleController {
     RoleService roleService;
 
     @GetMapping
-    public ApiResponse<List<RoleResponse>> view() {
+    public CustomApiResponse<List<RoleResponse>> view() {
         var result = roleService.getAllRoles();
-        return ApiResponse.<List<RoleResponse>>builder()
+        return CustomApiResponse.<List<RoleResponse>>builder()
                 .data(result)
                 .build();
     }

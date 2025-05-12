@@ -23,7 +23,7 @@ public class DataInitializer {
         log.info("Initializing data...");
         setupService.setupRolesAndPermissions();
         setupService.setupAdminAccount();
-        setupService.setUpTestAccount(120);
+        setupService.setUpTestAccount(50);
     }
 
 

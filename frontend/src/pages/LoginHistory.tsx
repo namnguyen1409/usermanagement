@@ -8,6 +8,7 @@ import { useState } from 'react'
 interface LoginHistory {
   id: string
   createdAt: string
+  expiredAt: string
   userAgent: string
   ipAddress: string
   device: string
@@ -36,11 +37,28 @@ const LoginHistory = () => {
       dataIndex: 'createdAt',
       key: 'createdAt',
       sorter: true,
-      render: (text: string) => dayjs(text).format('YYYY-MM-DD HH:mm:ss'),
+      render: (text: string) => dayjs(text).format('HH:mm:ss DD/MM/YYYY'),
       filter: {
         type: 'date',
         placeholder: 'Search by createdAt',
-        by: ['createdAtFrom', 'createdAtTo']
+        by: ['createdAtFrom', 'createdAtTo'],
+        format: "YYYY-MM-DDTHH:mm:ss",
+        viewFormat: "HH:mm:ss DD/MM/YYYY",
+        showTime: true
+      }
+    },{
+      title: 'Expired Time',
+      dataIndex: 'expiredAt',
+      key: 'expiredAt',
+      sorter: true,
+      render: (text: string) => dayjs(text).format('HH:mm:ss DD/MM/YYYY'),
+      filter: {
+        type: 'date',
+        placeholder: 'Search by expiredAt',
+        by: ['expiredAtFrom', 'expiredAtTo'],
+        format: "YYYY-MM-DDTHH:mm:ss",
+        viewFormat: "HH:mm:ss DD/MM/YYYY",
+        showTime: true
       }
     },
     {

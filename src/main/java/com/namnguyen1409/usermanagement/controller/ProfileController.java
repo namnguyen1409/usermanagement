@@ -3,7 +3,7 @@ package com.namnguyen1409.usermanagement.controller;
 import com.namnguyen1409.usermanagement.dto.request.FilterLoginLog;
 import com.namnguyen1409.usermanagement.dto.request.UpdateUserPasswordRequest;
 import com.namnguyen1409.usermanagement.dto.request.UpdateUserRequest;
-import com.namnguyen1409.usermanagement.dto.response.ApiResponse;
+import com.namnguyen1409.usermanagement.dto.response.CustomApiResponse;
 import com.namnguyen1409.usermanagement.dto.response.LoginLogResponse;
 import com.namnguyen1409.usermanagement.dto.response.UserResponse;
 import com.namnguyen1409.usermanagement.service.ProfileService;
@@ -25,55 +25,55 @@ public class ProfileController {
     ProfileService profileService;
 
     @GetMapping
-    public ApiResponse<UserResponse> view() {
+    public CustomApiResponse<UserResponse> view() {
         var response = profileService.view();
-        return ApiResponse.<UserResponse>builder()
+        return CustomApiResponse.<UserResponse>builder()
                 .data(response)
                 .build();
     }
 
     @PutMapping
-    public ApiResponse<UserResponse> update(@RequestBody @Validated UpdateUserRequest request) {
+    public CustomApiResponse<UserResponse> update(@RequestBody @Validated UpdateUserRequest request) {
         var response = profileService.update(request);
-        return ApiResponse.<UserResponse>builder()
+        return CustomApiResponse.<UserResponse>builder()
                 .data(response)
                 .build();
     }
 
     @PutMapping("/password")
-    public ApiResponse<Void> updatePassword(@RequestBody @Validated UpdateUserPasswordRequest request) {
+    public CustomApiResponse<Void> updatePassword(@RequestBody @Validated UpdateUserPasswordRequest request) {
         profileService.updatePassword(request);
-        return ApiResponse.<Void>builder()
+        return CustomApiResponse.<Void>builder()
                 .build();
     }
 
     @DeleteMapping
-    public ApiResponse<Void> delete() {
+    public CustomApiResponse<Void> delete() {
         profileService.delete();
-        return ApiResponse.<Void>builder()
+        return CustomApiResponse.<Void>builder()
                 .build();
     }
 
     @GetMapping("/login-history")
-    public ApiResponse<Page<LoginLogResponse>> loginHistory() {
+    public CustomApiResponse<Page<LoginLogResponse>> loginHistory() {
         var response = profileService.getLoginHistory(new FilterLoginLog());
-        return ApiResponse.<Page<LoginLogResponse>>builder()
+        return CustomApiResponse.<Page<LoginLogResponse>>builder()
                 .data(response)
                 .build();
     }
 
     @PostMapping("/login-history")
-    public ApiResponse<Page<LoginLogResponse>> loginHistory(@RequestBody FilterLoginLog filterRequest) {
+    public CustomApiResponse<Page<LoginLogResponse>> loginHistory(@RequestBody FilterLoginLog filterRequest) {
         var response = profileService.getLoginHistory(filterRequest);
-        return ApiResponse.<Page<LoginLogResponse>>builder()
+        return CustomApiResponse.<Page<LoginLogResponse>>builder()
                 .data(response)
                 .build();
     }
 
     @PostMapping("/revoke/{loginLogId}")
-    public ApiResponse<Void> revokeLoginLog(@PathVariable String loginLogId) {
+    public CustomApiResponse<Void> revokeLoginLog(@PathVariable String loginLogId) {
         profileService.revokeLoginLog(loginLogId);
-        return ApiResponse.<Void>builder()
+        return CustomApiResponse.<Void>builder()
                 .build();
     }
 

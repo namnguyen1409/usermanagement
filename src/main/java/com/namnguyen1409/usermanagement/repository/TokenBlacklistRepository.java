@@ -11,9 +11,8 @@ import java.time.LocalDateTime;
 public interface TokenBlacklistRepository extends JpaRepository<TokenBlacklist, String> {
     boolean existsByTokenId(String tokenId);
 
-    // xoá bỏ token có createdAt + expireTime > currentTime
     @Modifying
-    @Query("DELETE FROM TokenBlacklist tbl WHERE tbl.createdAt < :expirationTime")
-    void deleteExpiredTokens(@Param("expirationTime") LocalDateTime expirationTime);
+    @Query("DELETE FROM TokenBlacklist tbl WHERE tbl.expiredAt < :now")
+    void deleteExpiredTokens(@Param("now") LocalDateTime now);
 
 }

@@ -27,6 +27,8 @@ export interface FilterConfig {
   options?: { label: string; value: any }[]
   by: string[]
   format?: string
+  viewFormat?: string
+  showTime?: boolean
 }
 
 export interface ReusableColumnType<T> extends TableColumnType<T> {
@@ -50,7 +52,7 @@ const ReusableTable = <T extends object>({
   rowKey = 'id',
   defaultPageSize = 10,
   defaultSortBy = 'createdAt',
-  defaultSortDirection = 'desc',
+  defaultSortDirection = 'asc',
   visibleColumns = [],
   ...rest
 }: ReusableTableProps<T>) => {
@@ -169,7 +171,8 @@ const ReusableTable = <T extends object>({
               filter.by.map((field) => (
                 <DatePicker
                   key={field}
-                  format={filter.format || 'YYYY-MM-DD'}
+                  format={filter.viewFormat || filter.format || 'YYYY-MM-DD'}
+                  showTime={filter.showTime}
                   style={{ width: 188, marginBottom: 8, display: 'block' }}
                   value={
                     tempFilterState[field]
@@ -232,7 +235,7 @@ const ReusableTable = <T extends object>({
           })
         })
       }))
-  }, [columns, visibleColumns, filterState, fetchData])
+  }, [columns, visibleColumns, filterState, tempFilterState])
 
   useEffect(() => {
     fetchData({

@@ -7,6 +7,7 @@ Xây dựng hệ thống quản lý người dùng cho phép:
 - Gán quyền (permission) và vai trò (role) cho người dùng.
 - Phân quyền người cho người dùng truy cập vào các API phù hợp.
 - Hiển thị thông tin cá nhân sau khi đăng nhập.
+- Khoá tài khoản người nếu nhập sai mật khẩu quá 5 lần.
 
 ---
 ### **2. Công nghệ sử dụng**
@@ -225,6 +226,7 @@ hoặc đánh cắp thông tin đăng nhập.
 | `tokenId`   | String        | Primary Key  | ID định danh của token đã bị thu hồi |
 | `createdAt` | LocalDateTime | Tự động sinh | Thời điểm token bị đưa vào blacklist |
 
+####  5.1.5. **Thiết kế thực thể `TokenBl`**
 
 #### 5.2. **Luồng xử lý xác thực**
 

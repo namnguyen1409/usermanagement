@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class LoginLogResponse {
     String id;
     LocalDateTime createdAt;
+    LocalDateTime expiredAt;
     Boolean success;
     String userAgent;
     String ipAddress;

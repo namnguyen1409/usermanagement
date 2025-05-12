@@ -1,6 +1,6 @@
 package com.namnguyen1409.usermanagement.exception;
 
-import com.namnguyen1409.usermanagement.dto.response.ApiResponse;
+import com.namnguyen1409.usermanagement.dto.response.CustomApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,41 +18,44 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = Exception.class)
-    ResponseEntity<ApiResponse<Void>> handlingRuntimeException() {
-        ApiResponse<Void> apiResponse = new ApiResponse<>();
+    ResponseEntity<CustomApiResponse<Void>> handlingRuntimeException(
+            Exception exception
+    ) {
+        CustomApiResponse<Void> customApiResponse = new CustomApiResponse<>();
 
-        apiResponse.setCode(ErrorCode.UNCATEGORIZED.getCode());
-        apiResponse.setMessage(ErrorCode.UNCATEGORIZED.getMessage());
-        return ResponseEntity.badRequest().body(apiResponse);
+        customApiResponse.setCode(ErrorCode.UNCATEGORIZED.getCode());
+        customApiResponse.setMessage(ErrorCode.UNCATEGORIZED.getMessage());
+        log.error("Unhandled exception {}", (Object) exception.getStackTrace());
+        return ResponseEntity.badRequest().body(customApiResponse);
     }
 
     @ExceptionHandler(value = AccessDeniedException.class)
-    ResponseEntity<ApiResponse<Object>> handlingAccessDeniedException() {
+    ResponseEntity<CustomApiResponse<Object>> handlingAccessDeniedException() {
         ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
 
         return ResponseEntity.status(errorCode.getStatusCode())
-                .body(ApiResponse.builder()
+                .body(CustomApiResponse.builder()
                         .code(errorCode.getCode())
                         .message(errorCode.getMessage())
                         .build());
     }
 
     @ExceptionHandler(value = AppException.class)
-    ResponseEntity<ApiResponse<Object>> handlingAppException(AppException exception) {
+    ResponseEntity<CustomApiResponse<Object>> handlingAppException(AppException exception) {
         ErrorCode errorCode = exception.getErrorCode();
         return ResponseEntity.status(errorCode.getStatusCode())
-                .body(ApiResponse.builder()
+                .body(CustomApiResponse.builder()
                         .code(errorCode.getCode())
                         .message(exception.getMessage())
                         .build());
     }
 
     @ExceptionHandler(value = JwtException.class)
-    ResponseEntity<ApiResponse<Object>> handlingJwtException(JwtException exception) {
+    ResponseEntity<CustomApiResponse<Object>> handlingJwtException(JwtException exception) {
         ErrorCode errorCode = ErrorCode.INVALID_TOKEN;
 
         return ResponseEntity.status(errorCode.getStatusCode())
-                .body(ApiResponse.builder()
+                .body(CustomApiResponse.builder()
                         .code(errorCode.getCode())
                         .message(errorCode.getMessage())
                         .build());
@@ -60,7 +63,7 @@ public class GlobalExceptionHandler {
 
 
     @ExceptionHandler(BindException.class)
-    public ResponseEntity<ApiResponse<Object>> handleBindException(BindException e) {
+    public ResponseEntity<CustomApiResponse<Object>> handleBindException(BindException e) {
         Map<String, String> errors = new HashMap<>();
 
         e.getBindingResult().getFieldErrors().forEach(error -> {
@@ -69,7 +72,7 @@ public class GlobalExceptionHandler {
             errors.put(field, message);
         });
 
-        ApiResponse<Object> response = ApiResponse.builder()
+        CustomApiResponse<Object> response = CustomApiResponse.builder()
                 .code(HttpStatus.BAD_REQUEST.value())
                 .message("Validation failed")
                 .data(errors)

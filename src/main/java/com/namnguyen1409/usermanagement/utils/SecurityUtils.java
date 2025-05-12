@@ -4,6 +4,7 @@ import com.namnguyen1409.usermanagement.dto.request.FilterLoginLog;
 import com.namnguyen1409.usermanagement.dto.request.UpdateUserRequest;
 import com.namnguyen1409.usermanagement.dto.response.LoginLogResponse;
 import com.namnguyen1409.usermanagement.entity.LoginLog;
+import com.namnguyen1409.usermanagement.entity.RefreshToken;
 import com.namnguyen1409.usermanagement.entity.User;
 import com.namnguyen1409.usermanagement.exception.AppException;
 import com.namnguyen1409.usermanagement.exception.ErrorCode;
@@ -11,6 +12,9 @@ import com.namnguyen1409.usermanagement.mapper.LoginLogMapper;
 import com.namnguyen1409.usermanagement.repository.LoginLogRepository;
 import com.namnguyen1409.usermanagement.repository.UserRepository;
 import com.namnguyen1409.usermanagement.specification.LoginLogSpecification;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -26,6 +30,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -54,6 +60,14 @@ public class SecurityUtils {
     @NonFinal
     @Value("${user.locked-time}")
     long LOCKED_TIME;
+
+    @NonFinal
+    @Value("${jwt.refresh-time}")
+    long REFRESH_TIME;
+
+    @NonFinal
+    @Value("${jwt.refresh-secret-key}")
+    String REFRESH_SECRET_KEY;
 
     @NonFinal
     @Value("${jwt.private-key-location}")
@@ -146,7 +160,6 @@ public class SecurityUtils {
         }
     }
 
-
     public boolean is5ConsecutiveFailedLoginAttempts(User user) {
         List<LoginLog> last5LoginLogs = loginLogRepository.findTop5ByUserOrderByCreatedAtDesc(user);
         if (last5LoginLogs.size() < 5) {
@@ -193,6 +206,47 @@ public class SecurityUtils {
         if (isTargetAdmin && !isSuperAdmin()) {
             throw new AppException(ErrorCode.CANNOT_UPDATE_OTHER_ADMIN);
         }
+    }
+
+    public String hashRefreshToken(String refreshToken) {
+        try{
+            Mac mac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secretKey = new SecretKeySpec(REFRESH_SECRET_KEY.getBytes(), "HmacSHA256");
+            mac.init(secretKey);
+            byte[] hash = mac.doFinal(refreshToken.getBytes());
+            return Base64.getEncoder().encodeToString(hash);
+        }catch (Exception e) {
+            log.error("Error hashing refresh token: {}", e.getMessage());
+            throw new AppException(ErrorCode.UNCATEGORIZED);
+        }
+    }
+
+    public void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        var cookie = new Cookie("refreshToken", refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge((int) REFRESH_TIME);
+        response.addCookie(cookie);
+    }
+
+    public void clearRefreshTokenCookie(HttpServletResponse response) {
+        var cookie = new Cookie("refreshToken", null);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+    }
+
+    public String getRefreshTokenFromCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("refreshToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 
 }

@@ -8,8 +8,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import lombok.experimental.NonFinal;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
@@ -25,7 +23,6 @@ public class CustomJwtDecoder implements JwtDecoder {
 
     AuthenticationService authenticationService;
     SecurityUtils securityUtils;
-    private final ObjectCodec objectCodec;
 
     @NonFinal
     private NimbusJwtDecoder nimbusJwtDecoder;
