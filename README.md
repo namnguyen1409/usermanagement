@@ -1,8 +1,6 @@
----
-title: "Báo cáo đề tài: Hệ thống quản lý người dùng có phân quyền"
----
+# Báo cáo đề tài: Hệ thống quản lý người dùng có phân quyền"
 
-# Mục tiêu đề tài
+## Mục tiêu đề tài
 
 Xây dựng hệ thống quản lý người dùng cho phép:
 
@@ -19,7 +17,7 @@ Xây dựng hệ thống quản lý người dùng cho phép:
 - Cho phép người dùng xem lại lịch sử đăng nhập và đăng xuất khỏi các
   thiết bị.
 
-# Công nghệ sử dụng
+## Công nghệ sử dụng
 
 Bảng 1: Công nghệ sử dụng trong dự án
 
@@ -40,9 +38,9 @@ Bảng 1: Công nghệ sử dụng trong dự án
 | Spring Boot Devtools                 | Tự động reload khi code thay đổi, hỗ trợ phát triển nhanh hơn.    |
 | Các công cụ phát triển               | IDE (IntelliJ), Postman để kiểm thử API, Git để quản lý mã nguồn. |
 
-# Cơ sở lý thuyết
+## Cơ sở lý thuyết
 
-## Spring Boot Framework
+### Spring Boot Framework
 
 - **Lý thuyết**: Spring Boot là một framework giúp xây dựng ứng dụng
   Java dễ dàng, cung cấp auto-configuration, cấu trúc rõ ràng và tích
@@ -54,7 +52,7 @@ Bảng 1: Công nghệ sử dụng trong dự án
 - **Tham khảo**: [Spring Boot :: Spring
   Boot](https://docs.spring.io/spring-boot/)
 
-##  RESTful API {#restful-api}
+###  RESTful API {#restful-api}
 
 - **Lý thuyết**: REST (Representational State Transfer) là phong cách
   kiến trúc cho phép các hệ thống giao tiếp với nhau qua HTTP với các
@@ -66,7 +64,7 @@ Bảng 1: Công nghệ sử dụng trong dự án
 - **Tham khảo**: [What is REST?: REST API
   Tutorial](https://restfulapi.net/)
 
-## Spring Data JPA
+### Spring Data JPA
 
 - **Lý thuyết**: Là phần mở rộng của JPA giúp truy vấn cơ sở dữ liệu đơn
   giản hơn bằng cách định nghĩa interface thay vì viết SQL.
@@ -88,7 +86,7 @@ Bảng 1: Công nghệ sử dụng trong dự án
 - **Tham khảo**: [JSON Web Token Introduction -
   jwt.io](https://jwt.io/introduction)
 
-## Spring Security
+### Spring Security
 
 - **Lý thuyết**: Framework bảo mật mạnh mẽ của Spring, cung cấp xác
   thực, phân quyền, mã hóa mật khẩu,\...
@@ -99,7 +97,7 @@ Bảng 1: Công nghệ sử dụng trong dự án
 - **Tham khảo**: [Spring Security :: Spring
   Security](https://docs.spring.io/spring-security/reference/index.html)
 
-## Validation (Bean Validation - Jakarta)
+### Validation (Bean Validation - Jakarta)
 
 - **Lý thuyết**: Dựa trên các annotation như @NotBlank, @Email,
   @Size,\... để kiểm tra dữ liệu đầu vào.
@@ -110,7 +108,7 @@ Bảng 1: Công nghệ sử dụng trong dự án
 - **Tham khảo**: [Jakarta Bean Validation
   specification](https://beanvalidation.org/2.0/spec/)
 
-## DTO & Mapper (MapStruct) {#dto-mapper-mapstruct}
+### DTO & Mapper (MapStruct) {#dto-mapper-mapstruct}
 
 - **Lý thuyết**: DTO (Data Transfer Object) dùng để vận chuyển dữ liệu
   giữa các tầng. MapStruct là thư viện để ánh xạ tự động giữa Entity và
@@ -122,7 +120,7 @@ Bảng 1: Công nghệ sử dụng trong dự án
 - **Tham khảo**: [MapStruct 1.6.3 Reference
   Guide](https://mapstruct.org/documentation/stable/reference/html/)
 
-## Auditing (Spring Data Auditing)
+### Auditing (Spring Data Auditing)
 
 - **Lý thuyết**: Cho phép tự động ghi nhận người tạo, người sửa, thời
   điểm tạo và sửa cho entity.
@@ -133,7 +131,7 @@ Bảng 1: Công nghệ sử dụng trong dự án
 - **Tham khảo**: [Auditing :: Spring Data
   JPA](https://docs.spring.io/spring-data/jpa/reference/auditing.html)
 
-## Exception Handling (Global)
+### Exception Handling (Global)
 
 - **Lý thuyết**: Xử lý lỗi tập trung thông qua @ControllerAdvice và
   @ExceptionHandler, giúp API nhất quán và dễ debug.
@@ -144,7 +142,7 @@ Bảng 1: Công nghệ sử dụng trong dự án
 - Tham khảo: [Error Handling for REST with Spring \|
   Baeldung](https://www.baeldung.com/exception-handling-for-rest-with-spring)
 
-## Specification (Dynamic Filtering)
+### Specification (Dynamic Filtering)
 
 - **Lý thuyết**: Specification trong JPA giúp xây dựng truy vấn linh
   hoạt theo điều kiện động.
@@ -155,15 +153,15 @@ Bảng 1: Công nghệ sử dụng trong dự án
 - **Tham khảo**: [Specifications :: Spring Data
   JPA](https://docs.spring.io/spring-data/jpa/reference/jpa/specifications.html)
 
-# Kiến thức lập trình áp dụng
+## Kiến thức lập trình áp dụng
 
-## REST API
+### REST API
 
 sử dụng các annotation của Spring Boot như @RestController, @GetMapping,
 @PostMapping để xử lý các yêu cầu HTTP. Dữ liệu trao đổi giữa client và
 server ở định dạng JSON.
 
-## JWT (JSON Web Token)
+### JWT (JSON Web Token)
 
 Sử dụng JWT để thực hiện xác thực không trạng thái. Khi người dùng đăng
 nhập thành công, hệ thống cấp một JWT (chứa thông tin người dùng và vai
@@ -171,7 +169,7 @@ trò) để client lưu trữ. Các yêu cầu tiếp theo của client sẽ kè
 này trong header, cho phép server xác minh danh tính mà không cần lưu
 session.
 
-## Spring Security và Middleware
+### Spring Security và Middleware
 
 Spring Security được sử dụng để bảo vệ các API. Một loạt các filter (ví
 dụ filter xác thực JWT) hoạt động như middleware ngăn chặn các request
@@ -179,27 +177,27 @@ không hợp lệ trước khi vào Controller. Cấu hình bảo mật (Securit
 quy định rule phân quyền theo vai trò, đảm bảo chỉ những người dùng có
 quyền mới được truy cập tài nguyên tương ứng.
 
-## Validation
+### Validation
 
 Dữ liệu đầu vào từ client được kiểm tra tính hợp lệ với các annotation
 của Spring Validation (như @Valid, @NotBlank, @Email, v.v.). Điều này
 giúp ngăn ngừa dữ liệu sai định dạng hoặc thiếu trường bắt buộc.
 
-## ORM -- Spring Data JPA và Hibernate {#orm-spring-data-jpa-và-hibernate}
+### ORM -- Spring Data JPA và Hibernate {#orm-spring-data-jpa-và-hibernate}
 
 Các thực thể (entity) Java được ánh xạ tới bảng trong cơ sở dữ liệu
 thông qua JPA. Sử dụng Spring Data JPA (extends JpaRepository) để thực
 hiện các phép CRUD tự động. Hibernate làm lớp triển khai để tương tác cơ
 sở dữ liệu, giúp giảm bớt mã SQL thuần.
 
-## MapStruct và Lombok
+### MapStruct và Lombok
 
 Dự án sử dụng MapStruct để tự động chuyển đổi giữa đối tượng thực thể và
 DTO, giảm thiểu code viết tay khi ánh xạ dữ liệu. Lombok được dùng để tự
 động sinh getters/setters, constructor, builder, giúp giảm boilerplate
 cho các class.
 
-## Khác
+### Khác
 
 Ngoài ra, một số kiến thức bổ trợ khác như xử lý ngoại lệ (ví dụ dùng
 @ControllerAdvice xử lý lỗi toàn cục) và logging cũng được áp dụng để
@@ -212,7 +210,7 @@ bảo mật** (kiểm tra token, CORS, v.v.) -\> **Controller** nhận request
 -\> **Service** thực hiện logic nghiệp vụ -\> **Repository** tương tác
 với cơ sở dữ liệu -\> kết quả được trả ngược lại client.
 
-## Controller Layer
+### Controller Layer
 
 > Bao gồm các controller xử lý các endpoind. Ví dụ, UserController quản
 > lý thao tác CRUD người dùng (tạo tài khoản, lấy danh sách người dùng,
@@ -224,7 +222,7 @@ với cơ sở dữ liệu -\> kết quả được trả ngược lại client.
 > @RestController và các phương thức @GetMapping, @PostMapping\... để
 > định nghĩa API.
 
-## Service Layer
+### Service Layer
 
 > Chứa các lớp Service thực thi nghiệp vụ cụ thể. Ví dụ, UserService
 > thực hiện các thao tác liên quan đến quản lý người dùng (gọi
@@ -237,7 +235,7 @@ với cơ sở dữ liệu -\> kết quả được trả ngược lại client.
 > thể được bảo vệ bởi annotation @PreAuthorize để kiểm soát người dùng
 > có quyền thao tác hay không.
 
-## Repository Layer
+### Repository Layer
 
 > Gồm các interface kế thừa từ JpaRepository. Ví dụ, UserRepository,
 > RoleRepository, PermissionRepository, TokenBlacklistRepository cho
@@ -247,34 +245,34 @@ với cơ sở dữ liệu -\> kết quả được trả ngược lại client.
 > được lưu trữ trong cơ sở dữ liệu quan hệ (trong dự án này là Oracle)
 > thông qua JDBC driver của Oracle.
 
-# Bảo mật và xác thực
+## Bảo mật và xác thực
 
-## Xác thực JWT
+### Xác thực JWT
 
 Khi đăng nhập, hệ thống cấp JWT chứa thông tin người dùng và vai trò.
 JWT được ký bằng khóa bí mật và gửi về client. Mỗi request cần truy cập
 API bảo vệ phải kèm token này trong header Authorization. Hệ thống có
 một JwtAuthenticationEntryPoint để xử lý lỗi khi token không hợp lệ.
 
-## Lọc và giải mã token
+### Lọc và giải mã token
 
 Một lớp CustomJwtDecoder (hoặc filter) được dùng để giải mã và kiểm tra
 tính hợp lệ của JWT trên mỗi request. Nếu token đã hết hạn hoặc bị sửa
 đổi, request sẽ bị chặn và trả về lỗi 401.
 
-## Token Blacklist (Danh sách thu hồi)
+### Token Blacklist (Danh sách thu hồi)
 
 Dữ liệu các JWT bị thu hồi (ví dụ khi người dùng đăng xuất) được lưu
 trong TokenBlacklist. Nếu một token nằm trong danh sách đen, hệ thống sẽ
 từ chối cho phép sử dụng lại token đó, ngăn hành vi đánh cắp token cũ.
 
-## Mã hóa mật khẩu
+### Mã hóa mật khẩu
 
 Mật khẩu người dùng được lưu trong cơ sở dữ liệu ở dạng mã hóa (sử dụng
 BCryptPasswordEncoder). Khi đăng nhập, mật khẩu nhập vào được mã hóa và
 so sánh với bản mã lưu trữ, đảm bảo bảo mật nếu cơ sở dữ liệu bị lộ.
 
-## Phân quyền dựa trên vai trò
+### Phân quyền dựa trên vai trò
 
 Spring Security cấu hình phân quyền chi tiết, chỉ cho phép người dùng có
 vai trò (ROLE_ADMIN, ROLE_USER, v.v.) và quyền hạn tương ứng truy cập
@@ -283,15 +281,15 @@ hình httpSecurity để đảm bảo chỉ các vai trò được phép mới �
 thực thi một số chức năng (ví dụ chỉ Admin mới có thể xóa người dùng
 khác).
 
-## Kiểm tra dữ liệu đầu vào
+### Kiểm tra dữ liệu đầu vào
 
 Validation được sử dụng để ngăn ngừa các cuộc tấn công như SQL Injection
 hay XSS từ dữ liệu đầu vào. Ngoài ra có thể cấu hình CORS nếu frontend
 chạy trên miền khác, hạn chế truy cập từ các nguồn không tin cậy.
 
-# Chi tiết thiết kế
+## Chi tiết thiết kế
 
-## Mô hình thực thể
+### Mô hình thực thể
 
 Bảng 2: Thiết kế BaseEntity
 
@@ -377,7 +375,7 @@ Bảng 8: Thiết kế LoginLog
 | Os             | String        | Not null              | Hệ điều hành                    |
 | OsVersion      | String        | Not null              | Phiên bản hệ điều hành          |
 
-## Thiết kế API
+### Thiết kế API
 
 | Phương thức | Endpoint                       | Vai trò/Quyền được phép | Vai trò/Quyền bị cấm | Mô tả                                                            |
 |-------------|--------------------------------|-------------------------|----------------------|------------------------------------------------------------------|
@@ -403,7 +401,7 @@ Bảng 8: Thiết kế LoginLog
 | DELETE      | /users/{id}                    | DELETE_USER             |                      | Xóa một người dùng theo id                                       |
 | POST        | /users/restore/{id}            | SUPER_ADMIN             |                      | Khôi phục người dùng bị xóa                                      |
 
-#### Kết quả
+### Kết quả
 ![image](https://github.com/user-attachments/assets/77079edf-031f-4dff-a634-c557a56b6c73)
 Hình 1: Trang đăng nhập
 
