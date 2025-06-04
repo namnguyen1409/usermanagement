@@ -183,7 +183,7 @@ Dữ liệu đầu vào từ client được kiểm tra tính hợp lệ với c
 của Spring Validation (như @Valid, @NotBlank, @Email, v.v.). Điều này
 giúp ngăn ngừa dữ liệu sai định dạng hoặc thiếu trường bắt buộc.
 
-### ORM -- Spring Data JPA và Hibernate {#orm-spring-data-jpa-và-hibernate}
+### ORM - Spring Data JPA và Hibernate
 
 Các thực thể (entity) Java được ánh xạ tới bảng trong cơ sở dữ liệu
 thông qua JPA. Sử dụng Spring Data JPA (extends JpaRepository) để thực
