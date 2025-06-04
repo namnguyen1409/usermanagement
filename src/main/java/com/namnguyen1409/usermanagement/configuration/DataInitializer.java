@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DataInitializer {
     SetupService setupService;
 
+
     @Transactional
     @PostConstruct
     public void init() {
@@ -24,6 +25,8 @@ public class DataInitializer {
         setupService.setupRolesAndPermissions();
         setupService.setupAdminAccount();
         setupService.setUpTestAccount(50);
+        setupService.setupCache();
+
     }
 
 

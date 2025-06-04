@@ -12,6 +12,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -31,14 +32,14 @@ public interface UserMapper {
     User toUser(CreateUserRequest createUserRequest);
 
     default Set<String> mapRolesToNames(Set<Role> roles) {
-        if (roles == null) return null;
+        if (roles == null) return Collections.emptySet();
         return roles.stream()
                 .map(role -> role.getName().name())
                 .collect(Collectors.toSet());
     }
 
     default Set<String> mapPermissionsToNames(Set<Permission> permissions) {
-        if (permissions == null) return null;
+        if (permissions == null) return Collections.emptySet();
         return permissions.stream()
                 .map(permission -> permission.getName().name())
                 .collect(Collectors.toSet());

@@ -1,6 +1,6 @@
 package com.namnguyen1409.usermanagement.entity;
 
-import com.namnguyen1409.usermanagement.enums.UserRole;
+import com.namnguyen1409.usermanagement.constants.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

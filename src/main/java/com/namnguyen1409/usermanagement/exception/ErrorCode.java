@@ -23,6 +23,10 @@ public enum ErrorCode {
     USER_NOT_DELETED(2006, "User is not deleted", HttpStatus.BAD_REQUEST),
     USER_LOCKED(2007, "User is locked until %s", HttpStatus.BAD_REQUEST),
     USER_NOT_LOCKED(2008, "User is not locked", HttpStatus.BAD_REQUEST),
+    INVALID_LOGIN_INFO(2009, "Invalid login info", HttpStatus.BAD_REQUEST),
+    USER_NAME_EXISTED(2010, "Username already existed", HttpStatus.BAD_REQUEST),
+    USER_EMAIL_EXISTED(2011, "Email already existed", HttpStatus.BAD_REQUEST),
+    USER_PHONE_EXISTED(2012, "Phone number already existed", HttpStatus.BAD_REQUEST),
 
     PERMISSION_NOT_FOUND(3001, "Permission not found", HttpStatus.NOT_FOUND),
 
@@ -34,6 +38,10 @@ public enum ErrorCode {
     INVALID_TOKEN(5001, "Invalid token", HttpStatus.BAD_REQUEST),
     TOKEN_EXPIRED(5002, "Token expired", HttpStatus.UNAUTHORIZED),
     LOGIN_LOG_NOT_FOUND(5003, "Login log not found", HttpStatus.NOT_FOUND),
+    REFRESH_TOKEN_NOT_FOUND(5004, "Refresh token not found", HttpStatus.NOT_FOUND),
+
+    REGISTER_FALSE(6000, "Register failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    LOGOUT_FAILED(6001, "Logout failed", HttpStatus.INTERNAL_SERVER_ERROR),
     ;
     int code;
     String message;

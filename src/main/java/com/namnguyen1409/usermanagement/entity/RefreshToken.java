@@ -23,24 +23,24 @@ public class RefreshToken {
     String id;
 
     @Column(nullable = false, unique = true)
-    private String token;
+    String token;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    User user;
 
     @OneToOne
     @JoinColumn(name = "login_log_id", nullable = false)
-    private LoginLog loginLog;
+    LoginLog loginLog;
 
     @CreatedDate
     @Column(nullable = false)
-    private LocalDateTime createdAt;
+    LocalDateTime createdAt;
 
     @Column(nullable = false)
-    private LocalDateTime expiresAt;
+    LocalDateTime expiresAt;
 
     @Column(nullable = false)
-    private Boolean revoked = false;
+    Boolean revoked = false;
 
 }

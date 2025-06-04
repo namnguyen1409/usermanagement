@@ -3,6 +3,7 @@ package com.namnguyen1409.usermanagement.controller;
 import com.namnguyen1409.usermanagement.dto.response.CustomApiResponse;
 import com.namnguyen1409.usermanagement.dto.response.RoleResponse;
 import com.namnguyen1409.usermanagement.service.RoleService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -21,9 +22,11 @@ import java.util.List;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
+@Tag(name = "Role", description = "API for role management")
 public class RoleController {
 
     RoleService roleService;
+
 
     @GetMapping
     public CustomApiResponse<List<RoleResponse>> view() {

@@ -3,6 +3,7 @@ package com.namnguyen1409.usermanagement.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.FieldNameConstants;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@FieldNameConstants
 public abstract class BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -42,13 +44,13 @@ public abstract class BaseEntity {
     @Column(name = "updated_by")
     String updatedBy;
 
-    @Column(name="is_deleted")
+    @Column(name = "is_deleted")
     Boolean isDeleted = false;
 
-    @Column(name="deleted_at")
+    @Column(name = "deleted_at")
     LocalDateTime deletedAt;
 
-    @Column(name="deleted_by")
+    @Column(name = "deleted_by")
     String deletedBy;
 
     public void markAsDeleted(String deletedBy) {

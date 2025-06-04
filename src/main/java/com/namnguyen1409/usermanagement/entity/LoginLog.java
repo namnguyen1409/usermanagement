@@ -3,6 +3,7 @@ package com.namnguyen1409.usermanagement.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.FieldNameConstants;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 @Table(name = "LOGIN_LOGS")
+@FieldNameConstants
 public class LoginLog {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -39,7 +41,7 @@ public class LoginLog {
     @Column(nullable = false)
     LocalDateTime createdAt;
 
-    @Column(nullable = false)
+    @Column
     LocalDateTime expiredAt;
 
     @Column(nullable = false)

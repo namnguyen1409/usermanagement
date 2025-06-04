@@ -5,7 +5,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router'
 import { FaUserGroup } from 'react-icons/fa6'
 import { useRolePermission } from '../hooks/useRolePermission'
 import { Footer } from 'antd/es/layout/layout'
-import axiosInstance from '../utils/axiosInstance'
+import { logout } from '../utils/axiosLogout'
 
 const { Header, Sider, Content } = Layout
 
@@ -65,10 +65,7 @@ const MainLayout: React.FC = () => {
               onClick: async () => {
                 const confirmLogout = window.confirm('Are you sure you want to logout?')
                 if (confirmLogout) {
-                  await axiosInstance.post('/auth/logout')
-                  localStorage.removeItem('accessToken')
-                  localStorage.removeItem('refreshToken')
-                  navigate('/login')
+                  logout()
                 }
               },
               label: 'Logout'

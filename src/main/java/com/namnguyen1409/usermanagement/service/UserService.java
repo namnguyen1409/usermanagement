@@ -7,9 +7,9 @@ import com.namnguyen1409.usermanagement.dto.request.UpdateUserRequest;
 import com.namnguyen1409.usermanagement.dto.response.LoginLogResponse;
 import com.namnguyen1409.usermanagement.dto.response.UserResponse;
 import com.namnguyen1409.usermanagement.dto.response.UserResponseDetail;
+import com.namnguyen1409.usermanagement.entity.User;
+import com.namnguyen1409.usermanagement.exception.AppException;
 import org.springframework.data.domain.Page;
-
-import java.util.Set;
 
 
 public interface UserService {
@@ -21,7 +21,6 @@ public interface UserService {
 
     UserResponseDetail getUserById(String userId);
 
-    Set<UserResponse> getAllUsers();
 
     Page<UserResponse> filterUsers(FilterUserRequest filterUserRequest);
 
@@ -30,4 +29,12 @@ public interface UserService {
     Page<LoginLogResponse> getLoginHistory(String id, FilterLoginLog filterLoginLog);
 
     void unlockUser(String id);
+
+    User findByUserId(String userId) throws AppException;
+
+    void checkUserConflict(UpdateUserRequest updateUserRequest, String id);
+
+    User getCurrentUserIfExists();
+
+    User getCurrentUser();
 }

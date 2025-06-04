@@ -1,6 +1,7 @@
 package com.namnguyen1409.usermanagement.scheduler;
 
 import com.namnguyen1409.usermanagement.repository.TokenBlacklistRepository;
+import com.namnguyen1409.usermanagement.service.cache.TokenBlackListCacheService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 public class TokenBlackListScheduler {
 
     TokenBlacklistRepository tokenBlacklistRepository;
+    private final TokenBlackListCacheService tokenBlackListCacheService;
 
     @NonFinal
     @Value("${jwt.expiration-time}")
@@ -32,6 +34,9 @@ public class TokenBlackListScheduler {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime exp = now.minusSeconds(expirationTime);
         tokenBlacklistRepository.deleteExpiredTokens(exp);
+
+        // update cache in redis
+        tokenBlackListCacheService.syncDatabaseToCache();
     }
 
 }

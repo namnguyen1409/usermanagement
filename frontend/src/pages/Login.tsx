@@ -36,6 +36,11 @@ const Login = () => {
           localStorage.setItem('loginLogId', response.data.loginLogId)
         }
         message.success('Login successful!')
+
+        if (loginRequest.rememberMe) {
+          localStorage.setItem('rememberMe', 'true')
+        }
+
         navigate('/home')
       } else {
         notification.error(

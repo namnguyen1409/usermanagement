@@ -7,6 +7,13 @@ import CanAccess from './CanAccess'
 import dayjs from 'dayjs'
 import { useRolePermission } from '../hooks/useRolePermission'
 
+const API_ENDPOINTS = {
+  USER: '/users',
+  ROLES: '/roles',
+  RESTORE_USER: '/users/restore',
+  UNLOCK_USER: '/users/unlock'
+}
+
 interface EditUserDrawerProps {
   open: boolean
   userId: string
@@ -25,20 +32,18 @@ interface Role {
 
 const EditUserDrawer: React.FC<EditUserDrawerProps> = ({ open, onClose, onCreated, userId }) => {
   const [form] = Form.useForm()
-
   const [roles, setRoles] = useState<Role[]>([])
-
   const [permissions, setPermissions] = useState<string[]>([])
-
   const [user, setUser] = useState<any>(null)
 
   const fetchUser = useCallback(async () => {
     try {
-      const response = await axiosInstance.get(`/users/${userId}`)
-      setUser(response.data.data)
+      const response = await axiosInstance.get(`${API_ENDPOINTS.USER}/${userId}`)
+      const userData = response.data.data
+      setUser(userData)
       form.setFieldsValue({
-        ...response.data.data,
-        birthday: dayjs(response.data.data.birthday)
+        ...userData,
+        birthday: dayjs(userData.birthday)
       })
     } catch (error) {
       message.error('Lỗi khi tải thông tin người dùng')
@@ -47,7 +52,7 @@ const EditUserDrawer: React.FC<EditUserDrawerProps> = ({ open, onClose, onCreate
 
   const fetchRoles = useCallback(async () => {
     try {
-      const response = await axiosInstance.get('/roles')
+      const response = await axiosInstance.get(API_ENDPOINTS.ROLES)
       setRoles(response.data.data)
     } catch (error) {
       message.error('Lỗi khi tải danh sách quyền')
@@ -55,19 +60,18 @@ const EditUserDrawer: React.FC<EditUserDrawerProps> = ({ open, onClose, onCreate
   }, [])
 
   useEffect(() => {
-    fetchRoles()
-  }, [fetchRoles])
-
-  useEffect(() => {
     if (open) {
-      form.resetFields()
       fetchUser()
+      fetchRoles()
+    } else {
+      form.resetFields()
+      form.setFieldsValue({ birthday: null }) // Explicitly reset the birthday field to null
     }
-  }, [open, fetchUser, form])
+  }, [open, fetchUser, fetchRoles, form])
 
   const handleSubmit = async (values: any) => {
     try {
-      await axiosInstance.put(`/users/${userId}`, {
+      await axiosInstance.put(`${API_ENDPOINTS.USER}/${userId}`, {
         ...values,
         birthday: values.birthday.format('YYYY-MM-DD')
       })
@@ -79,17 +83,24 @@ const EditUserDrawer: React.FC<EditUserDrawerProps> = ({ open, onClose, onCreate
     }
   }
 
+  const handleAction = async (action: string, successMessage: string, errorMessage: string) => {
+    try {
+      await axiosInstance.post(action)
+      message.success(successMessage)
+      onCreated()
+      onClose()
+    } catch (error) {
+      message.error(errorMessage)
+    }
+  }
+
   const userRolePermissions = useRolePermission()
 
   const canRemoveOtherUser = () => {
     if (userRolePermissions.includes('ROLE_SUPER_ADMIN')) {
-      if (user?.roles?.includes('SUPER_ADMIN')) return false
-      return true
+      return !user?.roles?.includes('SUPER_ADMIN')
     }
-
-    if (user?.roles?.includes('ADMIN')) return false
-
-    return true
+    return !user?.roles?.includes('ADMIN')
   }
 
   return (
@@ -97,16 +108,13 @@ const EditUserDrawer: React.FC<EditUserDrawerProps> = ({ open, onClose, onCreate
       {canRemoveOtherUser() && !user?.isDeleted && (
         <Popconfirm
           title='Are you sure to delete this user?'
-          onConfirm={async () => {
-            try {
-              await axiosInstance.delete(`/users/${userId}`)
-              message.success('Xóa người dùng thành công')
-              onCreated()
-              onClose()
-            } catch (error) {
-              message.error('Lỗi khi xóa người dùng')
-            }
-          }}
+          onConfirm={() =>
+            handleAction(
+              `${API_ENDPOINTS.USER}/${userId}`,
+              'Xóa người dùng thành công',
+              'Lỗi khi xóa người dùng'
+            )
+          }
           okText='Yes'
           cancelText='No'
         >
@@ -119,16 +127,13 @@ const EditUserDrawer: React.FC<EditUserDrawerProps> = ({ open, onClose, onCreate
       {canRemoveOtherUser() && user?.isDeleted && (
         <Popconfirm
           title='Are you sure to restore this user?'
-          onConfirm={async () => {
-            try {
-              await axiosInstance.post(`/users/restore/${userId}`)
-              message.success('Khôi phục người dùng thành công')
-              onCreated()
-              onClose()
-            } catch (error) {
-              message.error('Lỗi khi khôi phục người dùng')
-            }
-          }}
+          onConfirm={() =>
+            handleAction(
+              `${API_ENDPOINTS.RESTORE_USER}/${userId}`,
+              'Khôi phục người dùng thành công',
+              'Lỗi khi khôi phục người dùng'
+            )
+          }
           okText='Yes'
           cancelText='No'
         >
@@ -141,16 +146,13 @@ const EditUserDrawer: React.FC<EditUserDrawerProps> = ({ open, onClose, onCreate
       {canRemoveOtherUser() && user?.isLocked && (
         <Popconfirm
           title='Are you sure to unlock this user?'
-          onConfirm={async () => {
-            try {
-              await axiosInstance.post(`/users/unlock/${userId}`)
-              message.success('Mở khóa người dùng thành công')
-              onCreated()
-              onClose()
-            } catch (error) {
-              message.error('Lỗi khi mở khóa người dùng')
-            }
-          }}
+          onConfirm={() =>
+            handleAction(
+              `${API_ENDPOINTS.UNLOCK_USER}/${userId}`,
+              'Mở khóa người dùng thành công',
+              'Lỗi khi mở khóa người dùng'
+            )
+          }
           okText='Yes'
           cancelText='No'
         >

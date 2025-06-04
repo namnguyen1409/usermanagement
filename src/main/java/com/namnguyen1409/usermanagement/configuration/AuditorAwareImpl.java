@@ -1,7 +1,7 @@
 package com.namnguyen1409.usermanagement.configuration;
 
-import org.springframework.lang.NonNull;
 import org.springframework.data.domain.AuditorAware;
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 

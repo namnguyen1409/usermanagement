@@ -1,4 +1,4 @@
-package com.namnguyen1409.usermanagement.enums;
+package com.namnguyen1409.usermanagement.constants.enums;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

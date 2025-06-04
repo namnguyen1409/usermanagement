@@ -29,7 +29,7 @@ export const apiPublicCall = async <T, F>(
     if (axios.isAxiosError(error)) {
       const statusCode = error.response?.status || 500;
       const apiErrorCode = error.response?.data?.code || statusCode;
-      const apiErrorMessage = error.response?.data?.message || 'An unexpected error occurred';
+      const apiErrorMessage = error.response?.data?.message || 'An unexpected error occurred' + error.message;
 
 
       return {

@@ -8,46 +8,25 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserSpecification {
+public class UserSpecification extends BaseSpecification {
+
     public static Specification<User> buildSpecification(FilterUserRequest filterRequest) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (filterRequest.getUsername() != null && !filterRequest.getUsername().trim().isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("username"), "%" + filterRequest.getUsername() + "%"));
-            }
+            addLikeIfNotEmpty(criteriaBuilder, predicates, root.get(User.Fields.username), filterRequest.getUsername());
+            addLikeIfNotEmpty(criteriaBuilder, predicates, root.get(User.Fields.firstName), filterRequest.getFirstName());
 
-            if (filterRequest.getFirstName() != null && !filterRequest.getFirstName().trim().isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("firstName"), "%" + filterRequest.getFirstName() + "%"));
-            }
-
-            if (filterRequest.getLastName() != null && !filterRequest.getLastName().trim().isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("lastName"), "%" + filterRequest.getLastName() + "%"));
-            }
-
-            if (filterRequest.getEmail() != null && !filterRequest.getEmail().trim().isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("email"), "%" + filterRequest.getEmail() + "%"));
-            }
-
-            if (filterRequest.getPhone() != null && !filterRequest.getPhone().trim().isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("phone"), "%" + filterRequest.getPhone() + "%"));
-            }
-
-            if (filterRequest.getGender() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("gender"), filterRequest.getGender()));
-            }
-
-            if (filterRequest.getBirthdayFrom() != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("birthday"), filterRequest.getBirthdayFrom()));
-            }
-
-            if (filterRequest.getBirthdayTo() != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("birthday"), filterRequest.getBirthdayTo()));
-            }
-
-            if (filterRequest.getAddress() != null && !filterRequest.getAddress().trim().isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("address"), "%" + filterRequest.getAddress() + "%"));
-            }
+            addLikeIfNotEmpty(criteriaBuilder, predicates, root.get(User.Fields.lastName), filterRequest.getLastName());
+            addLikeIfNotEmpty(criteriaBuilder, predicates, root.get(User.Fields.email), filterRequest.getEmail());
+            addLikeIfNotEmpty(criteriaBuilder, predicates, root.get(User.Fields.phone), filterRequest.getPhone());
+            addEqualIfNotNull(criteriaBuilder, predicates, root.get(User.Fields.gender), filterRequest.getGender());
+            addRange(criteriaBuilder, predicates,
+                    root.get(User.Fields.birthday),
+                    filterRequest.getBirthdayFrom(),
+                    filterRequest.getBirthdayTo()
+            );
+            addLikeIfNotEmpty(criteriaBuilder, predicates, root.get(User.Fields.address), filterRequest.getAddress());
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };

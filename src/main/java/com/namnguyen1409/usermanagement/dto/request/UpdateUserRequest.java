@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.FieldNameConstants;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -15,9 +16,10 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@FieldNameConstants
 public class UpdateUserRequest {
     @Size(min = 6, max = 20, message = "{user.username.size}")
-    @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "{user.username.pattern}")
+    @Pattern(regexp = "^\\w+$", message = "{user.username.pattern}")
     String username;
 
     @Size(min = 2, max = 20, message = "{user.firstName.size}")
@@ -31,7 +33,7 @@ public class UpdateUserRequest {
     @Email(message = "{user.email.valid}")
     String email;
 
-    @Pattern(regexp = "^[0-9]{10}$", message = "{user.phone.pattern}")
+    @Pattern(regexp = "^\\d{10}$", message = "{user.phone.pattern}")
     String phone;
 
     Boolean gender;

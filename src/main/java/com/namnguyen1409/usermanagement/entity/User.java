@@ -6,6 +6,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.FieldNameConstants;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
@@ -20,6 +21,7 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 @Table(name = "USERS")
+@FieldNameConstants
 public class User extends BaseEntity {
 
     @Column(nullable = false, unique = true, length = 50)
@@ -54,7 +56,7 @@ public class User extends BaseEntity {
     Boolean isLocked = false;
 
     @Column
-    LocalDateTime LockedAt;
+    LocalDateTime lockedAt;
 
     @ManyToMany
     Set<Role> roles;

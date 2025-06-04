@@ -1,6 +1,7 @@
 package com.namnguyen1409.usermanagement.specification;
 
 import com.namnguyen1409.usermanagement.dto.request.FilterLoginLog;
+import com.namnguyen1409.usermanagement.entity.BaseEntity;
 import com.namnguyen1409.usermanagement.entity.LoginLog;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
@@ -8,62 +9,44 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LoginLogSpecification {
+public class LoginLogSpecification extends BaseSpecification {
+
+
     public static Specification<LoginLog> buildSpecification(FilterLoginLog filterRequest) {
-        return (root, query, criteriaBuilder) -> {
+        return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (filterRequest.getId() != null && !filterRequest.getId().trim().isEmpty()) {
-                predicates.add(criteriaBuilder.equal(root.get("id"), filterRequest.getId()));
-            }
+            addEqualIfNotEmpty(cb, predicates, root.get(LoginLog.Fields.id), filterRequest.getId());
+            addEqualIfNotEmpty(cb, predicates,
+                    root.get(LoginLog.Fields.user).get(BaseEntity.Fields.id),
+                    filterRequest.getUserId()
+            );
 
-            if (filterRequest.getUserId() != null && !filterRequest.getUserId().trim().isEmpty()) {
-                predicates.add(criteriaBuilder.equal(root.get("user").get("id"), filterRequest.getUserId()));
-            }
+            addRange(cb, predicates, root.get(LoginLog.Fields.createdAt),
+                    filterRequest.getCreatedAtFrom(),
+                    filterRequest.getCreatedAtTo()
+            );
+            addRange(cb, predicates, root.get(LoginLog.Fields.expiredAt),
+                    filterRequest.getExpiredAtFrom(),
+                    filterRequest.getExpiredAtTo()
+            );
 
-            if(filterRequest.getCreatedAtFrom() != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), filterRequest.getCreatedAtFrom()));
-            }
-            if(filterRequest.getCreatedAtTo() != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), filterRequest.getCreatedAtTo()));
-            }
-            if (filterRequest.getExpiredAtFrom() != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("expiredAt"), filterRequest.getExpiredAtFrom()));
-            }
-            if (filterRequest.getExpiredAtTo() != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("expiredAt"), filterRequest.getExpiredAtTo()));
-            }
-            if (filterRequest.getSuccess() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("success"), filterRequest.getSuccess()));
-            }
-            if (filterRequest.getUserAgent() != null && !filterRequest.getUserAgent().trim().isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("userAgent"), "%" + filterRequest.getUserAgent() + "%"));
-            }
-            if (filterRequest.getIpAddress() != null && !filterRequest.getIpAddress().trim().isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("ipAddress"), "%" + filterRequest.getIpAddress() + "%"));
-            }
-            if (filterRequest.getDevice() != null && !filterRequest.getDevice().trim().isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("device"), "%" + filterRequest.getDevice() + "%"));
-            }
-            if (filterRequest.getBrowser() != null && !filterRequest.getBrowser().trim().isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("browser"), "%" + filterRequest.getBrowser() + "%"));
-            }
-            if (filterRequest.getBrowserVersion() != null && !filterRequest.getBrowserVersion().trim().isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("browserVersion"), "%" + filterRequest.getBrowserVersion() + "%"));
-            }
-            if (filterRequest.getOs() != null && !filterRequest.getOs().trim().isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("os"), "%" + filterRequest.getOs() + "%"));
-            }
-            if (filterRequest.getOsVersion() != null && !filterRequest.getOsVersion().trim().isEmpty()) {
-                predicates.add(criteriaBuilder.like(root.get("osVersion"), "%" + filterRequest.getOsVersion() + "%"));
-            }
+            addEqualIfNotNull(cb, predicates, root.get(LoginLog.Fields.success), filterRequest.getSuccess());
+            addEqualIfNotNull(cb, predicates, root.get(LoginLog.Fields.logout), filterRequest.getLogout());
 
-            if (filterRequest.getLogout() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("logout"), filterRequest.getLogout()));
-            }
+            addLikeIfNotEmpty(cb, predicates, root.get(LoginLog.Fields.userAgent), filterRequest.getUserAgent());
+            addLikeIfNotEmpty(cb, predicates, root.get(LoginLog.Fields.ipAddress), filterRequest.getIpAddress());
+            addLikeIfNotEmpty(cb, predicates, root.get(LoginLog.Fields.device), filterRequest.getDevice());
+            addLikeIfNotEmpty(cb, predicates, root.get(LoginLog.Fields.browser), filterRequest.getBrowser());
+            addLikeIfNotEmpty(cb, predicates,
+                    root.get(LoginLog.Fields.browserVersion),
+                    filterRequest.getBrowserVersion()
+            );
+            addLikeIfNotEmpty(cb, predicates, root.get(LoginLog.Fields.os), filterRequest.getOs());
+            addLikeIfNotEmpty(cb, predicates, root.get(LoginLog.Fields.osVersion), filterRequest.getOsVersion());
 
+            return cb.and(predicates.toArray(new Predicate[0]));
 
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
 }

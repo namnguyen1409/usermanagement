@@ -11,8 +11,12 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface BirthdayConstrain {
     String message() default "{user.birthday.valid}";
+
     Class<?>[] groups() default {};
+
     Class<?>[] payload() default {};
+
     int min() default 18;
+
     int max() default 100;
 }

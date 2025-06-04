@@ -1,6 +1,6 @@
 package com.namnguyen1409.usermanagement.validator;
 
-import com.namnguyen1409.usermanagement.repository.UserRepository;
+import com.namnguyen1409.usermanagement.service.cache.UserCacheService;
 import com.namnguyen1409.usermanagement.validator.constraints.EmailUniqueConstrain;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -14,10 +14,10 @@ import org.springframework.stereotype.Component;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EmailUniqueValidator implements ConstraintValidator<EmailUniqueConstrain, String> {
 
-    UserRepository userRepository;
+    UserCacheService userCacheService;
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
-        return !userRepository.existsByEmail(value);
+        return !userCacheService.isEmailExists(value);
     }
 }

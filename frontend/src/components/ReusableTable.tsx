@@ -36,6 +36,7 @@ export interface ReusableColumnType<T> extends TableColumnType<T> {
 }
 
 interface ReusableTableProps<T> extends TableProps<T> {
+  reloadState?: boolean
   apiUrl: string
   rowKey?: string | ((record: T) => string)
   defaultPageSize?: number
@@ -49,6 +50,7 @@ interface ReusableTableProps<T> extends TableProps<T> {
 const ReusableTable = <T extends object>({
   columns,
   apiUrl,
+  reloadState = false,
   rowKey = 'id',
   defaultPageSize = 10,
   defaultSortBy = 'createdAt',
@@ -237,6 +239,8 @@ const ReusableTable = <T extends object>({
       }))
   }, [columns, visibleColumns, filterState, tempFilterState])
 
+  
+
   useEffect(() => {
     fetchData({
       current: pagination.current,
@@ -245,7 +249,7 @@ const ReusableTable = <T extends object>({
       sortDirection: sortState.sortDirection,
       filter: filterState
     })
-  }, [pagination.current, pagination.pageSize, sortState, filterState, apiUrl])
+  }, [pagination.current, pagination.pageSize, sortState, filterState, apiUrl, reloadState])
 
   return (
     <Table<T>

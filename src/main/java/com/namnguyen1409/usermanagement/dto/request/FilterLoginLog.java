@@ -1,7 +1,12 @@
 package com.namnguyen1409.usermanagement.dto.request;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.FieldNameConstants;
+import lombok.experimental.SuperBuilder;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
@@ -9,7 +14,10 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class FilterLoginLog extends BaseFilterRequest{
+@FieldNameConstants
+@SuperBuilder(toBuilder = true)
+@NoArgsConstructor
+public class FilterLoginLog extends BaseFilterRequest {
     String id;
     String userId;
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
@@ -17,9 +25,9 @@ public class FilterLoginLog extends BaseFilterRequest{
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     LocalDateTime createdAtTo;
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    LocalDateTime ExpiredAtFrom;
+    LocalDateTime expiredAtFrom;
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    LocalDateTime ExpiredAtTo;
+    LocalDateTime expiredAtTo;
     Boolean success;
     String userAgent;
     String ipAddress;

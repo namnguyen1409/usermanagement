@@ -31,6 +31,8 @@ const LoginHistory = () => {
     localStorage.setItem('loginHistoryTableColumns', value.join(','))
   }
 
+  const [reloadState, setReloadState] = useState(false)
+
   const loginHistoryColumns = [
     {
       title: 'Login Time',
@@ -185,6 +187,7 @@ const LoginHistory = () => {
                   try {
                     await axiosInstance.post(`/profile/revoke/${record.id}`)
                     message.success('Revoke login history successfully')
+                    setReloadState((prev) => !prev)
                   } catch (error) {
                     message.error('Error revoking login history')
                   }
@@ -231,6 +234,7 @@ const LoginHistory = () => {
         ))}
       </Select>
       <ReusableTable<LoginHistory>
+        reloadState={reloadState}
         apiUrl='/profile/login-history'
         columns={loginHistoryColumns}
         visibleColumns={visibleColumns}

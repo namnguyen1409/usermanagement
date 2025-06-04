@@ -23,6 +23,7 @@ public class RandomUtils {
     public String generateRandomFirstName() {
         return getRandomElement(ajd);
     }
+
     public String generateRandomLastName() {
         return getRandomElement(noun);
     }

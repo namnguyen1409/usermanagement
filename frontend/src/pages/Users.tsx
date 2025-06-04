@@ -27,6 +27,7 @@ const Users = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
   const [showUserDetails, setShowUserDetails] = useState(false)
   const [showUserLoginHistory, setShowUserLoginHistory] = useState(false)
+  const [reloadState, setReloadState] = useState(false)
 
   const [visibleColumns, setVisibleColumns] = useState<string[]>(
     localStorage.getItem('userTableColumns')?.split(',') || []
@@ -213,6 +214,7 @@ const Users = () => {
       </Select>
 
       <ReusableTable<User>
+        reloadState={reloadState}
         apiUrl='/users'
         columns={userColumns}
         rowKey='id'
@@ -225,15 +227,20 @@ const Users = () => {
         onClose={() => setCreateUserDrawerOpen(false)}
         onCreated={() => {
           setCreateUserDrawerOpen(false)
+          setReloadState((prev) => !prev)
         }}
       />
 
       <EditUserDrawer
         open={editUserDrawerOpen}
         userId={selectedUserId || ''}
-        onClose={() => setEditUserDrawerOpen(false)}
+        onClose={() => {
+          setEditUserDrawerOpen(false)
+          setSelectedUserId(null) 
+        }}
         onCreated={() => {
           setEditUserDrawerOpen(false)
+          setReloadState((prev) => !prev)
         }}
       />
 

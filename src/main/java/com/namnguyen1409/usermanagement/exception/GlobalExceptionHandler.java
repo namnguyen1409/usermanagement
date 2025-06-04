@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +19,7 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = Exception.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     ResponseEntity<CustomApiResponse<Void>> handlingRuntimeException(
             Exception exception
     ) {
@@ -30,6 +32,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(value = AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     ResponseEntity<CustomApiResponse<Object>> handlingAccessDeniedException() {
         ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
 
@@ -51,6 +54,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(value = JwtException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     ResponseEntity<CustomApiResponse<Object>> handlingJwtException(JwtException exception) {
         ErrorCode errorCode = ErrorCode.INVALID_TOKEN;
 
@@ -63,6 +67,7 @@ public class GlobalExceptionHandler {
 
 
     @ExceptionHandler(BindException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<CustomApiResponse<Object>> handleBindException(BindException e) {
         Map<String, String> errors = new HashMap<>();
 
@@ -80,5 +85,4 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
-
 }

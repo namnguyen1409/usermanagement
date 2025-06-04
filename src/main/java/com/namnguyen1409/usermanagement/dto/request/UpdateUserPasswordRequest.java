@@ -16,7 +16,7 @@ public class UpdateUserPasswordRequest {
     String oldPassword;
 
     @NotNull(message = "user.password.notNull")
-    @Size(min = 6, max= 100, message = "user.password.size")
+    @Size(min = 6, max = 100, message = "user.password.size")
     @Pattern(
             regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).+$",
             message = "user.password.pattern"

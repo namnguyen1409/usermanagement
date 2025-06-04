@@ -1,0 +1,49 @@
+server:
+  port: 8000
+
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@localhost:1521:XE
+    username: system
+    password: 1409
+    driver-class-name: oracle.jdbc.OracleDriver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 30000
+      max-lifetime: 2000000
+      connection-timeout: 30000
+      poolName: HikariPoolBooks
+  jpa:
+    database-platform: org.hibernate.dialect.OracleDialect
+    hibernate:
+      ddl-auto: update
+  data:
+    redis:
+      database: 0
+      host: localhost
+      port: 6379
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jws-algorithms: RS256
+  messages:
+    basename: messages
+    encoding: UTF-8
+
+jwt:
+  private-key-location: classpath:private.pem
+  public-key-location: classpath:public.pem
+  expiration-time: 3600 # in seconds
+  refresh-time: 15552000 # in seconds (180 days)
+  refresh-name: refreshToken
+
+user:
+  locked-time: 10
+  max-failed-attempts: 5
+
+setup:
+  admin-username: admin
+  admin-password: admin
+  init-password: 123456
